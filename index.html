@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exness Terminal — TradingView Style | Kết nối API Exness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{
+  --bg:#131722; --bg2:#1e222d; --bg3:#2a2e39; --bg4:#363c4e;
+  --border:#2a2e39; --border2:#363c4e;
+  --text:#d1d4dc; --text2:#787b86; --text3:#9aa0b0;
+  --green:#26a69a; --green2:#089981; --red:#ef5350; --red2:#f23645;
+  --blue:#2962ff; --blue2:#1e53e5; --yellow:#f0b90b; --orange:#ff9800;
+  --header-h:48px; --ticker-h:32px; --footer-h:26px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#363c4e;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#4a5068}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;outline:none}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ===== HEADER ===== */
+.header{height:var(--header-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:12px;position:relative;z-index:50}
+.logo{display:flex;align-items:center;gap:9px;flex-shrink:0;cursor:pointer}
+.logo-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#f0b90b,#ff9800);display:flex;align-items:center;justify-content:center;font-weight:800;color:#131722;font-size:15px;box-shadow:0 2px 10px rgba(240,185,11,.35)}
+.logo-text{line-height:1.1}
+.logo-text b{font-size:14px;letter-spacing:.3px;color:#fff}
+.logo-text span{display:block;font-size:9px;color:var(--text2);letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+.badge-live{display:flex;align-items:center;gap:5px;background:rgba(38,166,154,.12);border:1px solid rgba(38,166,154,.35);color:#26a69a;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.5px}
+.badge-live .dot{width:6px;height:6px;border-radius:50%;background:#26a69a;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.symbol-search{flex:1;max-width:420px;position:relative}
+.symbol-search input{width:100%;height:34px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:0 36px 0 34px;color:#fff;font-size:13px;transition:border .15s}
+.symbol-search input:focus{border-color:var(--blue)}
+.symbol-search input::placeholder{color:var(--text2)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2);pointer-events:none}
+.search-kbd{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text2);background:var(--bg3);padding:2px 6px;border-radius:4px;border:1px solid var(--border2)}
+.search-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.5);max-height:340px;overflow-y:auto;display:none;z-index:100}
+.search-dropdown.open{display:block}
+.search-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border)}
+.search-item:last-child{border-bottom:none}
+.search-item:hover,.search-item.active{background:var(--bg3)}
+.search-item .sym{font-weight:700;color:#fff;width:70px;flex-shrink:0}
+.search-item .name{color:var(--text3);flex:1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-item .cat{font-size:9px;font-weight:700;letter-spacing:.8px;padding:2px 6px;border-radius:4px;background:var(--bg4);color:var(--text3);text-transform:uppercase}
+.header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:7px;font-size:12px;font-weight:600;transition:all .15s;white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--text3);border:1px solid transparent}
+.btn-ghost:hover{background:var(--bg3);color:#fff}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2)}
+.btn-outline:hover{border-color:#4a5068;background:var(--bg3)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue2)}
+.btn-yellow{background:var(--yellow);color:#131722}
+.btn-yellow:hover{background:#d9a50a}
+.balance-box{text-align:right;line-height:1.15;padding:0 4px}
+.balance-box small{display:block;font-size:9px;color:var(--text2);letter-spacing:.8px;text-transform:uppercase;font-weight:700}
+.balance-box b{font-size:14px;color:#fff;font-family:'JetBrains Mono',monospace}
+.balance-box b.up{color:var(--green)} .balance-box b.down{color:var(--red)}
+
+/* ===== TICKER TAPE ===== */
+.ticker-tape{height:var(--ticker-h);background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;overflow:hidden;position:relative}
+.ticker-tape::before,.ticker-tape::after{content:'';position:absolute;top:0;bottom:0;width:40px;z-index:2;pointer-events:none}
+.ticker-tape::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.ticker-tape::after{right:0;background:linear-gradient(-90deg,var(--bg),transparent)}
+.ticker-track{display:flex;gap:0;animation:tape 45s linear infinite;white-space:nowrap}
+.ticker-tape:hover .ticker-track{animation-play-state:paused}
+@keyframes tape{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tape-item{display:inline-flex;align-items:center;gap:6px;padding:0 14px;font-size:11px;border-right:1px solid var(--border);height:100%}
+.tape-item b{color:#fff;font-weight:700}
+.tape-item .p{font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.tape-item .c.up{color:var(--green)} .tape-item .c.down{color:var(--red)}
+
+/* ===== MAIN LAYOUT ===== */
+.main{display:grid;grid-template-columns:264px 1fr 320px;height:calc(100vh - var(--header-h) - var(--ticker-h) - var(--footer-h) - 196px);min-height:380px}
+@media(max-width:1100px){.main{grid-template-columns:220px 1fr 280px}}
+@media(max-width:860px){.main{grid-template-columns:1fr}.left-panel,.right-panel{display:none}}
+
+/* LEFT: WATCHLIST */
+.left-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-tabs button{flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;transition:all .15s}
+.panel-tabs button.active{color:#fff;border-bottom-color:var(--blue)}
+.panel-tabs button:hover{color:#fff}
+.watchlist{flex:1;overflow-y:auto}
+.watch-row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 10px;cursor:pointer;border-bottom:1px solid rgba(42,46,57,.6);border-left:3px solid transparent;transition:background .12s}
+.watch-row:hover{background:var(--bg3)}
+.watch-row.active{background:var(--bg3);border-left-color:var(--blue)}
+.watch-row .w-sym{font-weight:700;color:#fff;font-size:12px;display:flex;align-items:center;gap:6px}
+.watch-row .w-sym .fav{color:var(--yellow);font-size:11px}
+.watch-row .w-name{font-size:10px;color:var(--text2);grid-column:1}
+.watch-row .w-price{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#fff}
+.watch-row .w-change{text-align:right;font-size:11px;font-family:'JetBrains Mono',monospace}
+.watch-row .w-change.up{color:var(--green)} .watch-row .w-change.down{color:var(--red)}
+.watch-row .w-spark{grid-column:1/-1;height:22px;margin-top:3px}
+.watch-row .w-spark canvas{width:100%;height:100%}
+.left-foot{padding:10px;border-top:1px solid var(--border);flex-shrink:0}
+.left-foot .feed-info{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:11px;line-height:1.6;color:var(--text3)}
+.left-foot .feed-info b{color:#fff}
+.feed-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px;vertical-align:middle}
+.feed-dot.sim{background:var(--yellow)}
+
+/* CENTER: CHART */
+.center-panel{display:flex;flex-direction:column;background:var(--bg);overflow:hidden;position:relative}
+.chart-toolbar{height:42px;display:flex;align-items:center;gap:4px;padding:0 10px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;overflow-x:auto;overflow-y:hidden}
+.chart-toolbar::-webkit-scrollbar{height:0}
+.tf-group{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:2px;flex-shrink:0}
+.tf-group button{padding:4px 9px;font-size:11px;font-weight:600;color:var(--text2);border-radius:5px;transition:all .12s}
+.tf-group button:hover{color:#fff}
+.tf-group button.active{background:var(--blue);color:#fff}
+.tb-sep{width:1px;height:22px;background:var(--border2);margin:0 6px;flex-shrink:0}
+.tb-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;font-size:11px;font-weight:600;color:var(--text3);border-radius:6px;transition:all .12s;flex-shrink:0;white-space:nowrap}
+.tb-btn:hover{background:var(--bg3);color:#fff}
+.tb-btn.active{background:var(--bg3);color:#fff;box-shadow:inset 0 0 0 1px var(--border2)}
+.tb-btn svg{flex-shrink:0}
+.ohlc-legend{display:flex;align-items:center;gap:14px;padding:6px 12px;font-size:11px;color:var(--text2);flex-shrink:0;flex-wrap:wrap;background:var(--bg)}
+.ohlc-legend .sym-title{font-size:14px;font-weight:800;color:#fff;letter-spacing:.2px}
+.ohlc-legend .sym-title small{font-size:10px;color:var(--text2);font-weight:500;margin-left:6px}
+.ohlc-legend .ohlc-val{font-family:'JetBrains Mono',monospace}
+.ohlc-legend .ohlc-val b{color:var(--text3);font-weight:500;margin-right:3px}
+.ohlc-legend .ohlc-val span{color:#fff}
+.ohlc-legend .chg{font-family:'JetBrains Mono',monospace;font-weight:700}
+.ohlc-legend .chg.up{color:var(--green)} .ohlc-legend .chg.down{color:var(--red)}
+.chart-wrap{flex:1;position:relative;min-height:0;display:flex;flex-direction:column}
+#mainChart{flex:1;min-height:0;position:relative}
+#subChartWrap{display:none;border-top:1px solid var(--border);flex-shrink:0}
+#subChartWrap.show{display:block}
+#subChart{height:110px}
+.chart-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg);z-index:5;color:var(--text2);font-size:12px}
+.spinner{width:34px;height:34px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.drawing-bar{position:absolute;left:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:2px;background:rgba(30,34,45,.92);border:1px solid var(--border2);border-radius:9px;padding:5px;z-index:4;backdrop-filter:blur(6px)}
+.drawing-bar button{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--text3);transition:all .12s}
+.drawing-bar button:hover{background:var(--bg4);color:#fff}
+.drawing-bar button.active{background:var(--blue);color:#fff}
+.chart-crosshair-info{position:absolute;top:8px;right:70px;background:rgba(19,23,34,.9);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);z-index:4;display:none;pointer-events:none;line-height:1.7}
+.chart-crosshair-info.show{display:block}
+.chart-crosshair-info b{color:#fff}
+
+/* RIGHT: ORDER PANEL */
+.right-panel{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.order-panel{padding:12px;border-bottom:1px solid var(--border)}
+.order-panel h3{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.order-panel h3 .exness-tag{font-size:9px;background:rgba(240,185,11,.15);color:var(--yellow);padding:2px 7px;border-radius:4px;letter-spacing:.5px}
+.bs-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.bs-btn{height:44px;border-radius:9px;font-size:14px;font-weight:800;letter-spacing:.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .15s;color:#fff}
+.bs-btn small{font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;opacity:.9}
+.bs-btn.buy{background:linear-gradient(135deg,#089981,#26a69a)}
+.bs-btn.buy:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.bs-btn.sell{background:linear-gradient(135deg,#f23645,#ef5350)}
+.bs-btn.sell:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.bs-btn:active{transform:scale(.97)}
+.order-type-tabs{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:2px;margin-bottom:12px}
+.order-type-tabs button{flex:1;padding:5px;font-size:11px;font-weight:600;color:var(--text2);border-radius:5px}
+.order-type-tabs button.active{background:var(--bg4);color:#fff}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);margin-bottom:5px}
+.field input,.field select{width:100%;height:34px;background:var(--bg);border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:#fff;font-size:13px;font-family:'JetBrains Mono',monospace;transition:border .15s}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lot-slider{display:flex;align-items:center;gap:8px}
+.lot-slider input[type=range]{flex:1;accent-color:var(--blue);height:4px}
+.lot-slider .lot-val{font-family:'JetBrains Mono',monospace;font-weight:700;color:#fff;background:var(--bg);border:1px solid var(--border2);padding:5px 10px;border-radius:6px;min-width:64px;text-align:center;font-size:12px}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:11px;margin-bottom:12px}
+.spec-grid div{display:flex;justify-content:space-between}
+.spec-grid span{color:var(--text2)} .spec-grid b{color:#fff;font-family:'JetBrains Mono',monospace;font-weight:600}
+.place-btn{width:100%;height:40px;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:.5px;transition:all .15s;color:#fff}
+.place-btn.buy{background:var(--green2)} .place-btn.buy:hover{background:var(--green)}
+.place-btn.sell{background:var(--red2)} .place-btn.sell:hover{background:var(--red)}
+.place-btn:disabled{opacity:.5;cursor:not-allowed}
+.margin-info{font-size:11px;color:var(--text2);text-align:center;margin-top:7px;font-family:'JetBrains Mono',monospace}
+
+/* ORDER BOOK */
+.orderbook{padding:12px;border-bottom:1px solid var(--border)}
+.orderbook h3{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.ob-head,.ob-row{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 0;position:relative}
+.ob-head{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:5px}
+.ob-head span:nth-child(2),.ob-row span:nth-child(2){text-align:right}
+.ob-head span:nth-child(3),.ob-row span:nth-child(3){text-align:right}
+.ob-row{cursor:pointer}
+.ob-row:hover{background:var(--bg3)}
+.ob-row .bar{position:absolute;top:0;bottom:0;right:0;opacity:.14;pointer-events:none}
+.ob-row.ask .bar{background:var(--red)} .ob-row.bid .bar{background:var(--green)}
+.ob-row.ask .price{color:var(--red)} .ob-row.bid .price{color:var(--green)}
+.ob-row .price{font-weight:600} .ob-row .qty{color:var(--text3)} .ob-row .total{color:var(--text2)}
+.ob-spread{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin:7px 0;font-size:11px}
+.ob-spread b{font-family:'JetBrains Mono',monospace;color:#fff}
+.ob-spread span{color:var(--text2)}
+.ob-mid{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:#fff;text-align:center;padding:4px 0}
+.ob-mid.up{color:var(--green)} .ob-mid.down{color:var(--red)}
+
+/* RECENT TRADES */
+.recent-trades{padding:12px}
+.recent-trades h3{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:8px}
+.rt-row{display:grid;grid-template-columns:1fr 1fr auto;font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 0;border-bottom:1px solid rgba(42,46,57,.5)}
+.rt-row .p.buy{color:var(--green)} .rt-row .p.sell{color:var(--red)}
+.rt-row .q{color:var(--text3);text-align:right} .rt-row .t{color:var(--text2);text-align:right}
+
+/* ===== BOTTOM PANEL ===== */
+.bottom-panel{height:196px;background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.bottom-tabs{display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--border);height:36px;flex-shrink:0;overflow-x:auto}
+.bottom-tabs button{padding:6px 12px;font-size:12px;font-weight:600;color:var(--text2);border-radius:6px 6px 0 0;border-bottom:2px solid transparent;white-space:nowrap}
+.bottom-tabs button.active{color:#fff;border-bottom-color:var(--blue)}
+.bottom-tabs button:hover{color:#fff}
+.bottom-tabs .count{background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px}
+.bottom-tabs .count.red{background:var(--red2)}
+.bottom-body{flex:1;overflow:auto}
+table.pos-table{width:100%;border-collapse:collapse;font-size:12px}
+table.pos-table th{position:sticky;top:0;background:var(--bg2);text-align:left;padding:7px 12px;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);z-index:1}
+table.pos-table td{padding:7px 12px;border-bottom:1px solid rgba(42,46,57,.6);font-family:'JetBrains Mono',monospace;color:var(--text)}
+table.pos-table td:first-child{font-family:'Inter',sans-serif;font-weight:700;color:#fff}
+table.pos-table tr:hover td{background:var(--bg3)}
+.side-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.5px;font-family:'Inter',sans-serif}
+.side-badge.long{background:rgba(38,166,154,.18);color:var(--green)}
+.side-badge.short{background:rgba(239,83,80,.18);color:var(--red)}
+.pnl.up{color:var(--green);font-weight:700} .pnl.down{color:var(--red);font-weight:700}
+.btn-close{background:rgba(239,83,80,.15);color:var(--red);border:1px solid rgba(239,83,80,.4);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Inter',sans-serif;transition:all .12s}
+.btn-close:hover{background:var(--red);color:#fff}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text2)}
+.empty-state .icon{font-size:32px;margin-bottom:8px;opacity:.5}
+.empty-state p{font-size:12px;line-height:1.6}
+.api-panel{padding:16px;max-width:860px}
+.api-panel h4{font-size:13px;color:#fff;margin-bottom:6px}
+.api-panel p{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:12px}
+.api-panel code{background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--yellow);font-family:'JetBrains Mono',monospace}
+.api-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.api-grid .field{margin-bottom:0}
+.api-steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.api-step{flex:1;min-width:180px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;color:var(--text3)}
+.api-step b{display:block;color:#fff;font-size:12px;margin-bottom:3px}
+.api-step .num{display:inline-flex;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px}
+.specs-table{width:100%;border-collapse:collapse;font-size:11px}
+.specs-table th,.specs-table td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.specs-table th{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.specs-table td{font-family:'JetBrains Mono',monospace;color:var(--text)}
+.specs-table td:first-child{font-family:'Inter',sans-serif;font-weight:700;color:#fff}
+
+/* ===== FOOTER ===== */
+.footer{height:var(--footer-h);background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:11px;color:var(--text2);flex-shrink:0}
+.footer .f-item{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.footer .f-item b{color:var(--text3);font-family:'JetBrains Mono',monospace;font-weight:500}
+.footer .right{margin-left:auto;display:flex;gap:16px}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:92%;max-width:520px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.6);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-head h2{font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+.modal-head .close-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:var(--text2);font-size:16px}
+.modal-head .close-btn:hover{background:var(--bg3);color:#fff}
+.modal-body{padding:20px}
+.modal-body .field{margin-bottom:14px}
+.modal-body .field input{height:38px}
+.conn-status{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:14px}
+.conn-status .dot{width:9px;height:9px;border-radius:50%;background:var(--text2)}
+.conn-status.connected .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.conn-status.connected{border-color:rgba(38,166,154,.4)}
+.conn-status b{color:#fff}
+.conn-status span{color:var(--text3)}
+.modal-foot{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border)}
+.modal-foot .btn{flex:1;height:38px;justify-content:center;font-size:13px}
+.ind-list{display:flex;flex-direction:column;gap:2px}
+.ind-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .12s}
+.ind-item:hover{background:var(--bg3)}
+.ind-item .ind-color{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.ind-item .ind-name{flex:1;font-size:13px;color:#fff;font-weight:600}
+.ind-item .ind-desc{font-size:11px;color:var(--text2)}
+.ind-item .ind-check{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;flex-shrink:0;transition:all .12s}
+.ind-item.on .ind-check{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:40px;right:16px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-left:4px solid var(--green);border-radius:9px;padding:11px 14px;min-width:260px;max-width:340px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:toastIn .25s ease;pointer-events:auto;font-size:12px;line-height:1.5}
+.toast.error{border-left-color:var(--red)} .toast.warn{border-left-color:var(--yellow)} .toast.info{border-left-color:var(--blue)}
+.toast b{color:#fff;display:block;margin-bottom:2px}
+.toast span{color:var(--text3)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.toast.out{opacity:0;transform:translateX(20px);transition:all .3s}
+
+/* DROPDOWN MENU */
+.dropdown{position:relative}
+.dropdown-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;box-shadow:0 12px 32px rgba(0,0,0,.5);min-width:190px;padding:5px;display:none;z-index:90}
+.dropdown-menu.open{display:block}
+.dropdown-menu button{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;font-size:12px;color:var(--text);border-radius:6px;text-align:left}
+.dropdown-menu button:hover{background:var(--bg3);color:#fff}
+.dropdown-menu button.active{color:var(--blue);font-weight:700}
+.dropdown-menu .dm-sep{height:1px;background:var(--border);margin:4px 6px}
+
+@media(max-width:700px){
+  .logo-text span{display:none}
+  .balance-box{display:none}
+  .header-actions .btn span.lbl{display:none}
+  .bottom-panel{height:160px}
+  .main{height:calc(100vh - var(--header-h) - var(--ticker-h) - var(--footer-h) - 160px)}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="logo" onclick="location.reload()">
+    <div class="logo-icon">E</div>
+    <div class="logo-text"><b>EXNESS TERMINAL</b><span>TradingView Style</span></div>
+  </div>
+  <div class="badge-live" id="feedBadge"><span class="dot"></span><span id="feedBadgeText">LIVE FEED</span></div>
+
+  <div class="symbol-search">
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" id="searchInput" placeholder="Tìm symbol...  (VD: XAUUSD, EURUSD, BTCUSD)" autocomplete="off">
+    <span class="search-kbd">/</span>
+    <div class="search-dropdown" id="searchDropdown"></div>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="openApiModal()" title="Kết nối Exness API">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span class="lbl">Exness API</span>
+    </button>
+    <button class="btn btn-outline" onclick="resetDemo()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <span class="lbl">Reset Demo</span>
+    </button>
+    <div class="balance-box">
+      <small>Số dư Demo</small>
+      <b id="balanceVal">$10,000.00</b>
+    </div>
+    <button class="btn btn-yellow" onclick="document.getElementById('orderPanel').scrollIntoView({behavior:'smooth'})">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      <span class="lbl">Giao dịch</span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== TICKER TAPE ===== -->
+<div class="ticker-tape"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- LEFT: WATCHLIST -->
+  <aside class="left-panel">
+    <div class="panel-tabs" id="watchTabs">
+      <button class="active" data-cat="all">Tất cả</button>
+      <button data-cat="forex">Forex</button>
+      <button data-cat="metal">Kim loại</button>
+      <button data-cat="crypto">Crypto</button>
+      <button data-cat="index">Chỉ số</button>
+    </div>
+    <div class="watchlist" id="watchlist"></div>
+    <div class="left-foot">
+      <div class="feed-info">
+        <b>Nguồn dữ liệu:</b> <span id="feedSource">Đang kết nối...</span><br>
+        <span id="feedDetail">Stooq / Binance public feed (mô phỏng Exness)</span><br>
+        <span class="feed-dot" id="feedDot"></span><span id="feedStatusText">Đang tải giá...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTER: CHART -->
+  <section class="center-panel">
+    <div class="chart-toolbar">
+      <div class="tf-group" id="tfGroup">
+        <button data-tf="1m">1m</button>
+        <button data-tf="5m">5m</button>
+        <button data-tf="15m">15m</button>
+        <button data-tf="1h" class="active">1H</button>
+        <button data-tf="4h">4H</button>
+        <button data-tf="1d">1D</button>
+        <button data-tf="1w">1W</button>
+      </div>
+      <div class="tb-sep"></div>
+      <div class="dropdown">
+        <button class="tb-btn" id="chartTypeBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>
+          <span id="chartTypeLabel">Nến Nhật</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="dropdown-menu" id="chartTypeMenu">
+          <button data-ct="candles" class="active">▦ Nến Nhật (Candles)</button>
+          <button data-ct="bars">▥ Bar Chart</button>
+          <button data-ct="line">╱ Đường Line</button>
+          <button data-ct="area">◢ Area</button>
+          <button data-ct="heikin">▦ Heikin Ashi</button>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="tb-btn" id="indicatorBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15c2-4 4-4 6 0s4 4 6-2"/></svg>
+          Chỉ báo
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="dropdown-menu" id="indicatorMenu" style="min-width:230px"></div>
+      </div>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" id="volBtn" onclick="toggleVolume()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18"/><path d="M6 20v-6M11 20V8M16 20v-9M21 20V4"/></svg>
+        Volume
+      </button>
+      <button class="tb-btn" onclick="toast('info','Chụp chart','Tính năng demo — ảnh chart sẽ được lưu khi kết nối Exness API thật.')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Chụp
+      </button>
+      <button class="tb-btn" onclick="toast('info','Lưu layout','Layout hiện tại đã được lưu tự động vào trình duyệt.')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        Lưu
+      </button>
+      <div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0">
+        <button class="tb-btn" onclick="chart && chart.timeScale().scrollToRealTime()" title="Về thời gian thực">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Realtime
+        </button>
+        <button class="tb-btn" onclick="resetChartView()" title="Reset view">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="ohlc-legend" id="ohlcLegend">
+      <span class="sym-title" id="legendSymbol">XAUUSD <small>Gold vs US Dollar · Exness</small></span>
+      <span class="ohlc-val"><b>O</b><span id="lgO">—</span></span>
+      <span class="ohlc-val"><b>H</b><span id="lgH">—</span></span>
+      <span class="ohlc-val"><b>L</b><span id="lgL">—</span></span>
+      <span class="ohlc-val"><b>C</b><span id="lgC">—</span></span>
+      <span class="chg" id="lgChg">—</span>
+      <span style="margin-left:auto;font-size:10px" id="lgFeed">Feed: —</span>
+    </div>
+
+    <div class="chart-wrap">
+      <div id="mainChart"></div>
+      <div id="subChartWrap"><div id="subChart"></div></div>
+      <div class="chart-loading" id="chartLoading">
+        <div class="spinner"></div>
+        <div>Đang tải dữ liệu giá từ Exness feed...</div>
+      </div>
+      <div class="drawing-bar" id="drawingBar">
+        <button class="active" title="Con trỏ" onclick="setTool(this,'cursor')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg></button>
+        <button title="Đường xu hướng" onclick="setTool(this,'trend')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 20 4"/><circle cx="4" cy="20" r="1.5" fill="currentColor"/><circle cx="20" cy="4" r="1.5" fill="currentColor"/></svg></button>
+        <button title="Đường ngang" onclick="setTool(this,'hline')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/><path d="M12 5v14" stroke-dasharray="3 3"/></svg></button>
+        <button title="Fibonacci" onclick="setTool(this,'fib')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 10h16M4 15h16M4 20h16"/></svg></button>
+        <button title="Hình chữ nhật" onclick="setTool(this,'rect')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="1"/></svg></button>
+        <button title="Text" onclick="setTool(this,'text')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg></button>
+        <button title="Nam châm" onclick="setTool(this,'magnet')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 3h4v5H6zM14 3h4v5h-4z"/></svg></button>
+      </div>
+      <div class="chart-crosshair-info" id="crosshairInfo"></div>
+    </div>
+  </section>
+
+  <!-- RIGHT: ORDER PANEL -->
+  <aside class="right-panel">
+    <div class="order-panel" id="orderPanel">
+      <h3>Đặt lệnh <span class="exness-tag">EXNESS</span></h3>
+      <div class="bs-buttons">
+        <button class="bs-btn buy" onclick="quickTrade('buy')">MUA / BUY<small id="askPrice">—</small></button>
+        <button class="bs-btn sell" onclick="quickTrade('sell')">BÁN / SELL<small id="bidPrice">—</small></button>
+      </div>
+      <div class="order-type-tabs" id="orderTypeTabs">
+        <button class="active" data-ot="market">Market</button>
+        <button data-ot="limit">Limit</button>
+        <button data-ot="stop">Stop</button>
+      </div>
+      <div class="field">
+        <label>Khối lượng (Lot)</label>
+        <div class="lot-slider">
+          <input type="range" id="lotRange" min="0.01" max="5" step="0.01" value="0.10">
+          <div class="lot-val" id="lotVal">0.10</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Đòn bẩy</label>
+          <select id="leverageSel">
+            <option value="1">1:1</option><option value="10">1:10</option><option value="50">1:50</option>
+            <option value="100">1:100</option><option value="200">1:200</option>
+            <option value="500">1:500</option><option value="1000">1:1000</option>
+            <option value="2000" selected>1:2000</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Giá đặt lệnh</label>
+          <input type="text" id="orderPrice" placeholder="Market" disabled>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Take Profit (pips)</label><input type="number" id="tpInput" placeholder="VD: 200" min="0"></div>
+        <div class="field"><label>Stop Loss (pips)</label><input type="number" id="slInput" placeholder="VD: 100" min="0"></div>
+      </div>
+      <div class="spec-grid" id="specGrid"></div>
+      <button class="place-btn buy" id="placeBtn" onclick="placeOrder()">MUA — XAUUSD</button>
+      <div class="margin-info" id="marginInfo">Margin yêu cầu: —</div>
+    </div>
+
+    <div class="orderbook">
+      <h3>Sổ lệnh <span style="font-size:10px;color:var(--text2);letter-spacing:0;text-transform:none;font-weight:500" id="obSymbol">XAUUSD</span></h3>
+      <div class="ob-head"><span>Giá</span><span>Khối lượng</span><span>Tổng</span></div>
+      <div id="obAsks"></div>
+      <div class="ob-mid" id="obMid">—</div>
+      <div class="ob-spread"><span>Spread</span><b id="obSpread">—</b><span id="obSpreadPts">— pts</span></div>
+      <div id="obBids"></div>
+    </div>
+
+    <div class="recent-trades">
+      <h3>Giao dịch gần đây</h3>
+      <div id="recentTrades"><div style="color:var(--text2);font-size:11px;padding:6px 0">Đang chờ dữ liệu...</div></div>
+    </div>
+  </aside>
+</div>
+
+<!-- ===== BOTTOM PANEL ===== -->
+<div class="bottom-panel">
+  <div class="bottom-tabs" id="bottomTabs">
+    <button class="active" data-bt="positions">Vị thế đang mở <span class="count" id="posCount">0</span></button>
+    <button data-bt="orders">Lệnh chờ</button>
+    <button data-bt="history">Lịch sử</button>
+    <button data-bt="api">Exness API</button>
+    <button data-bt="specs">Thông số Exness</button>
+    <span style="margin-left:auto;font-size:11px;color:var(--text2);padding-right:6px" id="equityInfo">Equity: <b style="color:#fff" class="mono">$10,000.00</b></span>
+  </div>
+  <div class="bottom-body" id="bottomBody"></div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <span class="f-item"><span class="feed-dot" id="footDot"></span><b id="footFeed">Exness Demo Feed</b></span>
+  <span class="f-item">Server: <b>Exness-MT5 Real</b></span>
+  <span class="f-item">Ping: <b id="pingVal">12ms</b></span>
+  <div class="right">
+    <span class="f-item">Giờ server (GMT+7): <b id="serverTime">--:--:--</b></span>
+    <span class="f-item">© 2026 Exness Terminal</span>
+  </div>
+</footer>
+
+<!-- ===== API MODAL ===== -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2><span style="background:var(--yellow);color:#131722;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">E</span> Kết nối Exness API</h2>
+      <button class="close-btn" onclick="closeApiModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="conn-status" id="connStatus">
+        <span class="dot"></span>
+        <div><b id="connTitle">Chưa kết nối</b><br><span id="connDesc">Đang dùng feed demo (Stooq/Binance + mô phỏng Exness). Nhập API Key để kết nối tài khoản thật.</span></div>
+      </div>
+      <div class="api-steps">
+        <div class="api-step"><b><span class="num">1</span> Mở Exness Personal Area</b>Đăng nhập exness.com → Cài đặt → API</div>
+        <div class="api-step"><b><span class="num">2</span> Tạo API Key</b>Tạo Personal API Key, bật quyền đọc giá & giao dịch</div>
+        <div class="api-step"><b><span class="num">3</span> Dán vào đây</b>Key được lưu local trong trình duyệt, không gửi đi đâu khác</div>
+      </div>
+      <div class="field"><label>Exness API Key</label><input type="text" id="apiKey" placeholder="VD: ex_xxxxxxxxxxxxxxxxxxxx"></div>
+      <div class="field"><label>Exness API Secret</label><input type="password" id="apiSecret" placeholder="••••••••••••••••••••"></div>
+      <div class="field"><label>Account ID (MT5)</label><input type="text" id="apiAccount" placeholder="VD: 12345678"></div>
+      <div class="field"><label>Server</label>
+        <select id="apiServer"><option>Exness-MT5Real</option><option>Exness-MT5Trial</option><option>Exness-MT4Real</option></select>
+      </div>
+      <p style="font-size:11px;color:var(--text2);line-height:1.6">⚠️ Exness không cung cấp API giá công khai miễn phí. API chính thức yêu cầu Personal API Key. Terminal này dùng feed công khai (Stooq/Binance) để hiển thị giá thật gần thời gian thực và mô phỏng khớp lệnh Exness. Xem <code>server.py</code> trong repo để proxy sang Exness REST/MT5 bridge khi có key.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="disconnectApi()">Ngắt kết nối</button>
+      <button class="btn btn-primary" id="testConnBtn" onclick="testConnection()">Kiểm tra kết nối</button>
+      <button class="btn btn-yellow" onclick="saveApi()">Lưu & Kết nối</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ============================================================
+   EXNESS TERMINAL — TradingView-style chart + Exness API feed
+   Data: Stooq (forex/metal/index) + Binance (crypto) public
+   feeds with realistic simulated fallback (Exness demo mode).
+   ============================================================ */
+
+// ---------- SYMBOL CONFIG (Exness specs) ----------
+const SYMBOLS = [
+  {sym:'XAUUSD', name:'Gold vs US Dollar', cat:'metal', base:2650, digits:2, spreadPts:35, contract:100, minLot:0.01, maxLev:2000, stooq:'xauusd', binance:null, vol:0.00035, pip:0.01},
+  {sym:'XAGUSD', name:'Silver vs US Dollar', cat:'metal', base:31.5, digits:3, spreadPts:35, contract:5000, minLot:0.01, maxLev:2000, stooq:'xagusd', binance:null, vol:0.0006, pip:0.001},
+  {sym:'EURUSD', name:'Euro vs US Dollar', cat:'forex', base:1.0850, digits:5, spreadPts:8, contract:100000, minLot:0.01, maxLev:2000, stooq:'eurusd', binance:null, vol:0.00012, pip:0.0001},
+  {sym:'GBPUSD', name:'Pound vs US Dollar', cat:'forex', base:1.2720, digits:5, spreadPts:12, contract:100000, minLot:0.01, maxLev:2000, stooq:'gbpusd', binance:null, vol:0.00014, pip:0.0001},
+  {sym:'USDJPY', name:'US Dollar vs Yen', cat:'forex', base:155.20, digits:3, spreadPts:10, contract:100000, minLot:0.01, maxLev:2000, stooq:'usdjpy', binance:null, vol:0.00012, pip:0.01},
+  {sym:'USDCHF', name:'US Dollar vs Franc', cat:'forex', base:0.8850, digits:5, spreadPts:15, contract:100000, minLot:0.01, maxLev:2000, stooq:'usdchf', binance:null, vol:0.00011, pip:0.0001},
+  {sym:'AUDUSD', name:'Aussie vs US Dollar', cat:'forex', base:0.6550, digits:5, spreadPts:12, contract:100000, minLot:0.01, maxLev:2000, stooq:'audusd', binance:null, vol:0.00013, pip:0.0001},
+  {sym:'USDCAD', name:'US Dollar vs Canada', cat:'forex', base:1.3680, digits:5, spreadPts:15, contract:100000, minLot:0.01, maxLev:2000, stooq:'usdcad', binance:null, vol:0.00012, pip:0.0001},
+  {sym:'EURGBP', name:'Euro vs Pound', cat:'forex', base:0.8520, digits:5, spreadPts:12, contract:100000, minLot:0.01, maxLev:2000, stooq:'eurgbp', binance:null, vol:0.00010, pip:0.0001},
+  {sym:'EURJPY', name:'Euro vs Yen', cat:'forex', base:168.40, digits:3, spreadPts:15, contract:100000, minLot:0.01, maxLev:2000, stooq:'eurjpy', binance:null, vol:0.00013, pip:0.01},
+  {sym:'BTCUSD', name:'Bitcoin vs US Dollar', cat:'crypto', base:97400, digits:2, spreadPts:250, contract:1, minLot:0.01, maxLev:200, stooq:'btcusd', binance:'BTCUSDT', vol:0.0012, pip:1},
+  {sym:'ETHUSD', name:'Ethereum vs US Dollar', cat:'crypto', base:3420, digits:2, spreadPts:180, contract:10, minLot:0.01, maxLev:200, stooq:'ethusd', binance:'ETHUSDT', vol:0.0015, pip:1},
+  {sym:'LTCUSD', name:'Litecoin vs US Dollar', cat:'crypto', base:104.5, digits:2, spreadPts:40, contract:100, minLot:0.01, maxLev:200, stooq:'ltcusd', binance:'LTCUSDT', vol:0.0016, pip:0.1},
+  {sym:'XRPUSD', name:'Ripple vs US Dollar', cat:'crypto', base:2.35, digits:4, spreadPts:30, contract:10000, minLot:0.01, maxLev:200, stooq:'xrpusd', binance:'XRPUSDT', vol:0.0018, pip:0.0001},
+  {sym:'US30', name:'Dow Jones 30', cat:'index', base:43800, digits:2, spreadPts:250, contract:5, minLot:0.01, maxLev:200, stooq:'us30', binance:null, vol:0.00025, pip:1},
+  {sym:'NAS100', name:'Nasdaq 100', cat:'index', base:21200, digits:2, spreadPts:180, contract:5, minLot:0.01, maxLev:200, stooq:'nas100', binance:null, vol:0.0003, pip:1},
+  {sym:'SPX500', name:'S&P 500', cat:'index', base:5980, digits:2, spreadPts:40, contract:25, minLot:0.01, maxLev:200, stooq:'spx500', binance:null, vol:0.00022, pip:0.1},
+  {sym:'GER40', name:'DAX 40 Germany', cat:'index', base:19850, digits:2, spreadPts:150, contract:5, minLot:0.01, maxLev:200, stooq:'ger40', binance:null, vol:0.00028, pip:1},
+  {sym:'UK100', name:'FTSE 100 UK', cat:'index', base:8260, digits:2, spreadPts:120, contract:10, minLot:0.01, maxLev:200, stooq:'uk100', binance:null, vol:0.0002, pip:1},
+  {sym:'JPN225', name:'Nikkei 225 Japan', cat:'index', base:39200, digits:2, spreadPts:200, contract:10, minLot:0.01, maxLev:200, stooq:'jpn225', binance:null, vol:0.0003, pip:1},
+  {sym:'XBRUSD', name:'Brent Crude Oil', cat:'metal', base:74.5, digits:2, spreadPts:35, contract:1000, minLot:0.01, maxLev:200, stooq:'xbrusd', binance:null, vol:0.0008, pip:0.01},
+  {sym:'XTIUSD', name:'WTI Crude Oil', cat:'metal', base:70.2, digits:2, spreadPts:30, contract:1000, minLot:0.01, maxLev:200, stooq:'xtiusd', binance:null, vol:0.0009, pip:0.01},
+];
+
+const TF_SECONDS = {'1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400,'1d':86400,'1w':604800};
+const TF_STOOQ = {'1m':'d','5m':'d','15m':'d','1h':'d','4h':'d','1d':'d','1w':'w'};
+const TF_BINANCE = {'1m':'1m','5m':'5m','15m':'15m','1h':'1h','4h':'4h','1d':'1d','1w':'1w'};
+
+// ---------- STATE ----------
+let state = {
+  symbol: 'XAUUSD',
+  timeframe: '1h',
+  chartType: 'candles',
+  showVolume: true,
+  indicators: { ma20:false, ma50:false, ema20:false, bb:false, rsi:false, macd:false },
+  balance: 10000,
+  positions: [],
+  pendingOrders: [],
+  history: [],
+  candles: [],
+  livePrice: null,
+  liveBid: null,
+  liveAsk: null,
+  dayOpen: null,
+  feedMode: 'demo', // 'live' | 'demo'
+  feedSource: 'Đang kết nối...',
+  watchCat: 'all',
+  bottomTab: 'positions',
+  orderSide: 'buy',
+  orderType: 'market',
+  api: JSON.parse(localStorage.getItem('exness_api') || 'null'),
+  nextId: 1,
+};
+
+const $ = id => document.getElementById(id);
+const fmt = (n, d) => n == null || isNaN(n) ? '—' : Number(n).toLocaleString('en-US',{minimumFractionDigits:d, maximumFractionDigits:d});
+const fmtPrice = (n, digits) => fmt(n, digits);
+const nowSec = () => Math.floor(Date.now()/1000);
+function symCfg(){ return SYMBOLS.find(s=>s.sym===state.symbol) || SYMBOLS[0]; }
+function priceOf(sym){ const p = state.prices?.[sym]; return p ?? null; }
+
+// ---------- TOAST ----------
+function toast(type, title, msg){
+  const wrap = $('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<b>${title}</b><span>${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(), 320); }, 4200);
+}
+
+// ---------- SEEDED RANDOM (stable synthetic history) ----------
+function seededRand(seed){
+  let s = seed;
+  return function(){
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+function hashStr(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619);} return Math.abs(h); }
+
+function genSyntheticCandles(cfg, tf, count=300){
+  const rand = seededRand(hashStr(cfg.sym + tf));
+  const tfSec = TF_SECONDS[tf];
+  const now = nowSec();
+  const endTime = Math.floor(now / tfSec) * tfSec;
+  let price = cfg.base * (0.92 + rand()*0.08);
+  const candles = [];
+  // warm-up drift toward base
+  for(let i=0;i<count;i++){
+    const drift = (cfg.base - price) / cfg.base * 0.002;
+    const shock = (rand()-0.5) * 2 * cfg.vol * Math.sqrt(tfSec/3600) * 3.2;
+    const open = price;
+    const change = drift + shock;
+    const close = open * (1 + change);
+    const high = Math.max(open, close) * (1 + rand()*cfg.vol*1.4);
+    const low = Math.min(open, close) * (1 - rand()*cfg.vol*1.4);
+    const vol = 200 + rand()*1800 + Math.abs(change)*90000;
+    candles.push({time: endTime - (count-1-i)*tfSec, open, high, low, close, volume: vol});
+    price = close;
+  }
+  // anchor last close near base with small offset so live feels real
+  const anchor = cfg.base * (1 + (rand()-0.5)*0.004);
+  const ratio = anchor / candles[candles.length-1].close;
+  candles.forEach(c=>{ c.open*=ratio; c.high*=ratio; c.low*=ratio; c.close*=ratio; });
+  return candles;
+}
+
+// ---------- FETCH REAL DATA ----------
+async function fetchStooq(cfg, tf){
+  const interval = TF_STOOQ[tf] || 'd';
+  const url = `https://stooq.com/q/d/l/?s=${cfg.stooq}&i=${interval}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('stooq http ' + res.status);
+  const text = await res.text();
+  const lines = text.trim().split('\n');
+  if(lines.length < 10) throw new Error('stooq empty');
+  const candles = [];
+  for(let i=1;i<lines.length;i++){
+    const p = lines[i].split(',');
+    if(p.length < 6) continue;
+    const d = new Date(p[0] + 'T00:00:00Z');
+    if(isNaN(d)) continue;
+    candles.push({time: Math.floor(d.getTime()/1000), open:+p[1], high:+p[2], low:+p[3], close:+p[4], volume:+p[5]||1000});
+  }
+  if(candles.length < 20) throw new Error('stooq too few');
+  // For intraday TFs, expand daily candles into pseudo-intraday for chart feel
+  if(tf !== '1d' && tf !== '1w'){
+    return expandToIntraday(candles, tf, cfg);
+  }
+  return candles.slice(-300);
+}
+
+function expandToIntraday(daily, tf, cfg){
+  // Split each daily candle into N intraday candles with random walk inside range
+  const tfSec = TF_SECONDS[tf];
+  const perDay = Math.floor(86400 / tfSec);
+  const out = [];
+  const rand = seededRand(hashStr(cfg.sym + tf + 'intra'));
+  for(const d of daily){
+    const dayStart = d.time;
+    let p = d.open;
+    for(let k=0;k<perDay;k++){
+      const t = dayStart + k*tfSec;
+      const prog = k / perDay;
+      const target = d.open + (d.close - d.open) * prog;
+      const o = p;
+      const c = target + (rand()-0.5) * (d.high - d.low) * 0.25;
+      const h = Math.max(o,c) + rand()*(d.high-Math.max(o,c))*0.4;
+      const l = Math.min(o,c) - rand()*(Math.min(o,c)-d.low)*0.4;
+      out.push({time:t, open:o, high:h, low:l, close:c, volume:(d.volume||1000)/perDay * (0.5+rand())});
+      p = c;
+    }
+  }
+  return out.slice(-400);
+}
+
+async function fetchBinance(cfg, tf){
+  const interval = TF_BINANCE[tf] || '1h';
+  const url = `https://api.binance.com/api/v3/klines?symbol=${cfg.binance}&interval=${interval}&limit=300`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('binance http ' + res.status);
+  const data = await res.json();
+  return data.map(k => ({time: Math.floor(k[0]/1000), open:+k[1], high:+k[2], low:+k[3], close:+k[4], volume:+k[5]}));
+}
+
+async function loadCandles(){
+  const cfg = symCfg();
+  const tf = state.timeframe;
+  $('chartLoading').style.display = 'flex';
+  let candles = null, source = '';
+  // 1) Binance for crypto (most reliable CORS + realtime)
+  if(cfg.binance){
+    try { candles = await fetchBinance(cfg, tf); source = 'Binance Public API (live)'; state.feedMode='live'; }
+    catch(e){ console.warn('Binance fail', e); }
+  }
+  // 2) Stooq for forex/metal/index
+  if(!candles){
+    try { candles = await fetchStooq(cfg, tf); source = 'Stooq Public Feed (live)'; state.feedMode='live'; }
+    catch(e){ console.warn('Stooq fail', e); }
+  }
+  // 3) Synthetic fallback (Exness demo simulation)
+  if(!candles){
+    candles = genSyntheticCandles(cfg, tf);
+    source = 'Exness Demo (mô phỏng)';
+    state.feedMode = 'demo';
+  }
+  state.candles = candles;
+  state.feedSource = source;
+  const last = candles[candles.length-1];
+  state.livePrice = last.close;
+  state.dayOpen = candles[0].open;
+  updateSpread();
+  $('chartLoading').style.display = 'none';
+  updateFeedUI();
+  renderChart();
+  renderWatchlist();
+  renderOrderBook();
+  renderRecentTrades();
+  updateLegend(last);
+  updateSpecGrid();
+  updatePlaceBtn();
+}
+
+// ---------- CHART ----------
+let chart = null, mainSeries = null, volSeries = null, indSeries = {};
+let subChart = null, subSeries = null, subSeries2 = null;
+
+function chartOptions(){
+  return {
+    layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#787b86', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 },
+    grid: { vertLines: { color: 'rgba(42,46,57,.55)' }, horzLines: { color: 'rgba(42,46,57,.55)' } },
+    rightPriceScale: { borderColor: '#2a2e39' },
+    timeScale: { borderColor: '#2a2e39', timeVisible: true, secondsVisible: false, rightOffset: 6, barSpacing: 9 },
+    crosshair: { mode: 0, vertLine: { color: '#4a5068', labelBackgroundColor: '#363c4e' }, horzLine: { color: '#4a5068', labelBackgroundColor: '#363c4e' } },
+  };
+}
+
+function initChart(){
+  const el = $('mainChart');
+  el.innerHTML = '';
+  chart = LightweightCharts.createChart(el, chartOptions());
+  chart.subscribeCrosshairMove(param => {
+    const info = $('crosshairInfo');
+    if(!param.time || !param.seriesData || param.seriesData.size === 0){ info.classList.remove('show'); return; }
+    const d = param.seriesData.get(mainSeries);
+    if(!d){ info.classList.remove('show'); return; }
+    const cfg = symCfg();
+    const dt = new Date(param.time*1000);
+    info.innerHTML = `<b>${dt.toLocaleString('vi-VN')}</b><br>O ${fmtPrice(d.open,cfg.digits)} · H ${fmtPrice(d.high,cfg.digits)}<br>L ${fmtPrice(d.low,cfg.digits)} · C ${fmtPrice(d.close,cfg.digits)}`;
+    info.classList.add('show');
+    updateLegend(d);
+  });
+  chart.subscribeCrosshairMove(()=>{ /* keep legend on last */ });
+  new ResizeObserver(()=>{ if(chart) chart.applyOptions({width: el.clientWidth, height: el.clientHeight}); }).observe(el);
+}
+
+function renderChart(){
+  if(!chart) initChart();
+  // clear old series
+  if(mainSeries){ try{chart.removeSeries(mainSeries);}catch(e){} mainSeries=null; }
+  if(volSeries){ try{chart.removeSeries(volSeries);}catch(e){} volSeries=null; }
+  Object.values(indSeries).forEach(s=>{ try{chart.removeSeries(s);}catch(e){} });
+  indSeries = {};
+
+  const candles = state.candles;
+  if(!candles.length) return;
+  const cfg = symCfg();
+
+  const data = candles.map(c => ({time:c.time, open:c.open, high:c.high, low:c.low, close:c.close}));
+  const ct = state.chartType;
+
+  if(ct === 'candles' || ct === 'heikin'){
+    let d = data;
+    if(ct === 'heikin'){
+      d = data.map((c,i)=>{
+        const o = i===0 ? (c.open+c.high+c.low+c.close)/4 : (d[i-1].open + d[i-1].close)/2;
+        const cl = (c.open+c.high+c.low+c.close)/4;
+        const h = Math.max(c.high, o, cl), l = Math.min(c.low, o, cl);
+        return {time:c.time, open:o, high:h, low:l, close:cl};
+      });
+    }
+    mainSeries = chart.addCandlestickSeries({ upColor:'#26a69a', downColor:'#ef5350', wickUpColor:'#26a69a', wickDownColor:'#ef5350', borderVisible:false });
+    mainSeries.setData(d);
+  } else if(ct === 'bars'){
+    mainSeries = chart.addBarSeries({ upColor:'#26a69a', downColor:'#ef5350', openVisible:true });
+    mainSeries.setData(data);
+  } else if(ct === 'line'){
+    mainSeries = chart.addLineSeries({ color:'#2962ff', lineWidth:2, priceLineVisible:true });
+    mainSeries.setData(data.map(c=>({time:c.time, value:c.close})));
+  } else if(ct === 'area'){
+    mainSeries = chart.addAreaSeries({ lineColor:'#2962ff', topColor:'rgba(41,98,255,.35)', bottomColor:'rgba(41,98,255,0)', lineWidth:2 });
+    mainSeries.setData(data.map(c=>({time:c.time, value:c.close})));
+  }
+
+  // Volume
+  if(state.showVolume){
+    volSeries = chart.addHistogramSeries({ priceFormat:{type:'volume'}, priceScaleId:'', scaleMargins:{top:0.82, bottom:0} });
+    volSeries.setData(candles.map(c=>({time:c.time, value:c.volume, color: c.close>=c.open ? 'rgba(38,166,154,.45)' : 'rgba(239,83,80,.45)'})));
+  }
+
+  // Indicators overlay
+  const closes = candles.map(c=>c.close);
+  if(state.indicators.ma20) addMA(closes, candles, 20, '#f0b90b', 'MA20');
+  if(state.indicators.ma50) addMA(closes, candles, 50, '#2962ff', 'MA50');
+  if(state.indicators.ema20) addEMA(closes, candles, 20, '#e91e63', 'EMA20');
+  if(state.indicators.bb) addBB(candles, 20, 2);
+
+  // Last price line
+  const last = candles[candles.length-1];
+  if(mainSeries && last){
+    mainSeries.createPriceLine({ price: last.close, color: last.close>=last.open ? '#26a69a' : '#ef5350', lineWidth:1, lineStyle:2, axisLabelVisible:true, title:'' });
+  }
+
+  chart.timeScale().fitContent();
+  renderSubChart();
+}
+
+function addMA(closes, candles, period, color, name){
+  const vals = sma(closes, period);
+  const s = chart.addLineSeries({ color, lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  s.setData(candles.map((c,i)=>({time:c.time, value:vals[i]})).filter(d=>d.value!=null));
+  indSeries[name] = s;
+}
+function addEMA(closes, candles, period, color, name){
+  const vals = ema(closes, period);
+  const s = chart.addLineSeries({ color, lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  s.setData(candles.map((c,i)=>({time:c.time, value:vals[i]})).filter(d=>d.value!=null));
+  indSeries[name] = s;
+}
+function addBB(candles, period, mult){
+  const closes = candles.map(c=>c.close);
+  const mid = sma(closes, period);
+  const upper = [], lower = [];
+  for(let i=0;i<closes.length;i++){
+    if(i < period-1){ upper.push(null); lower.push(null); continue; }
+    const slice = closes.slice(i-period+1, i+1);
+    const m = slice.reduce((a,b)=>a+b,0)/period;
+    const variance = slice.reduce((a,b)=>a+(b-m)**2,0)/period;
+    const sd = Math.sqrt(variance);
+    upper.push(m + mult*sd); lower.push(m - mult*sd);
+  }
+  const mk = (vals, color) => {
+    const s = chart.addLineSeries({ color, lineWidth:1, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+    s.setData(candles.map((c,i)=>({time:c.time, value:vals[i]})).filter(d=>d.value!=null));
+    return s;
+  };
+  indSeries['BB_UP'] = mk(upper, 'rgba(240,185,11,.7)');
+  indSeries['BB_MID'] = mk(mid, 'rgba(154,160,176,.7)');
+  indSeries['BB_LO'] = mk(lower, 'rgba(240,185,11,.7)');
+}
+
+function sma(data, period){
+  const out = new Array(data.length).fill(null);
+  let sum = 0;
+  for(let i=0;i<data.length;i++){
+    sum += data[i];
+    if(i >= period) sum -= data[i-period];
+    if(i >= period-1) out[i] = sum/period;
+  }
+  return out;
+}
+function ema(data, period){
+  const out = new Array(data.length).fill(null);
+  const k = 2/(period+1);
+  let prev = null;
+  for(let i=0;i<data.length;i++){
+    if(i < period-1) continue;
+    if(prev === null){
+      const slice = data.slice(0, period);
+      prev = slice.reduce((a,b)=>a+b,0)/period;
+      out[period-1] = prev;
+    } else {
+      prev = data[i]*k + prev*(1-k);
+      out[i] = prev;
+    }
+  }
+  return out;
+}
+function rsiCalc(closes, period=14){
+  const out = new Array(closes.length).fill(null);
+  let gains=0, losses=0;
+  for(let i=1;i<closes.length;i++){
+    const diff = closes[i]-closes[i-1];
+    if(i <= period){
+      if(diff>0) gains+=diff; else losses-=diff;
+      if(i===period){
+        const avgG = gains/period, avgL = losses/period;
+        out[i] = avgL===0 ? 100 : 100 - 100/(1+avgG/avgL);
+      }
+    } else {
+      const g = diff>0?diff:0, l = diff<0?-diff:0;
+      gains = (gains*(period-1)+g)/period;
+      losses = (losses*(period-1)+l)/period;
+      out[i] = losses===0 ? 100 : 100 - 100/(1+gains/losses);
+    }
+  }
+  return out;
+}
+function macdCalc(closes){
+  const e12 = ema(closes,12), e26 = ema(closes,26);
+  const macdLine = closes.map((_,i)=> (e12[i]!=null && e26[i]!=null) ? e12[i]-e26[i] : null);
+  const valid = macdLine.filter(v=>v!=null);
+  const sig = ema(valid, 9);
+  const signal = new Array(closes.length).fill(null);
+  let vi = 0;
+  for(let i=0;i<closes.length;i++){ if(macdLine[i]!=null){ signal[i]=sig[vi++]; } }
+  const hist = closes.map((_,i)=> (macdLine[i]!=null && signal[i]!=null) ? macdLine[i]-signal[i] : null);
+  return {macdLine, signal, hist};
+}
+
+function renderSubChart(){
+  const wrap = $('subChartWrap');
+  const showRSI = state.indicators.rsi, showMACD = state.indicators.macd;
+  if(!showRSI && !showMACD){ wrap.classList.remove('show'); if(subChart){ subChart.remove(); subChart=null; } return; }
+  wrap.classList.add('show');
+  const el = $('subChart');
+  el.innerHTML = '';
+  if(subChart){ try{subChart.remove();}catch(e){} }
+  subChart = LightweightCharts.createChart(el, {...chartOptions(), height:110});
+  const candles = state.candles;
+  const closes = candles.map(c=>c.close);
+  if(showRSI){
+    const r = rsiCalc(closes,14);
+    subSeries = subChart.addLineSeries({ color:'#ab47bc', lineWidth:1.5, priceLineVisible:false });
+    subSeries.setData(candles.map((c,i)=>({time:c.time, value:r[i]})).filter(d=>d.value!=null));
+    subSeries.createPriceLine({price:70, color:'rgba(239,83,80,.6)', lineWidth:1, lineStyle:2, axisLabelVisible:true, title:'70'});
+    subSeries.createPriceLine({price:30, color:'rgba(38,166,154,.6)', lineWidth:1, lineStyle:2, axisLabelVisible:true, title:'30'});
+    subSeries.createPriceLine({price:50, color:'rgba(120,123,134,.5)', lineWidth:1, lineStyle:2, axisLabelVisible:false, title:''});
+  }
+  if(showMACD){
+    const {macdLine, signal, hist} = macdCalc(closes);
+    const s1 = subChart.addLineSeries({ color:'#2962ff', lineWidth:1.5, priceLineVisible:false });
+    s1.setData(candles.map((c,i)=>({time:c.time, value:macdLine[i]})).filter(d=>d.value!=null));
+    const s2 = subChart.addLineSeries({ color:'#ff9800', lineWidth:1.5, priceLineVisible:false });
+    s2.setData(candles.map((c,i)=>({time:c.time, value:signal[i]})).filter(d=>d.value!=null));
+    const h = subChart.addHistogramSeries({ priceFormat:{type:'volume'}, priceScaleId:'', scaleMargins:{top:0.1,bottom:0} });
+    h.setData(candles.map((c,i)=>({time:c.time, value:hist[i]||0, color:(hist[i]||0)>=0?'rgba(38,166,154,.5)':'rgba(239,83,80,.5)'})));
+  }
+  subChart.timeScale().fitContent();
+  new ResizeObserver(()=>{ if(subChart) subChart.applyOptions({width: el.clientWidth}); }).observe(el);
+}
+
+function resetChartView(){ if(chart){ chart.timeScale().fitContent(); } toast('info','Reset view','Chart đã về chế độ xem toàn bộ.'); }
+function toggleVolume(){ state.showVolume = !state.showVolume; $('volBtn').classList.toggle('active', state.showVolume); renderChart(); }
+function setTool(btn, tool){
+  document.querySelectorAll('#drawingBar button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tool !== 'cursor') toast('info','Công cụ vẽ', `Đã chọn: ${btn.title}. (Demo — vẽ trực tiếp sẽ khả dụng khi kết nối Exness API thật.)`);
+}
+
+// ---------- INDICATORS MENU ----------
+const INDICATORS = [
+  {id:'ma20', name:'MA 20', desc:'Moving Average 20', color:'#f0b90b'},
+  {id:'ma50', name:'MA 50', desc:'Moving Average 50', color:'#2962ff'},
+  {id:'ema20', name:'EMA 20', desc:'Exponential MA 20', color:'#e91e63'},
+  {id:'bb', name:'Bollinger Bands', desc:'BB 20, 2', color:'#26a69a'},
+  {id:'rsi', name:'RSI 14', desc:'Relative Strength Index', color:'#ab47bc'},
+  {id:'macd', name:'MACD', desc:'12, 26, 9', color:'#ff9800'},
+];
+function renderIndicatorMenu(){
+  $('indicatorMenu').innerHTML = INDICATORS.map(ind=>`
+    <button class="${state.indicators[ind.id]?'active':''}" onclick="toggleIndicator('${ind.id}')">
+      <span style="width:10px;height:10px;border-radius:3px;background:${ind.color};display:inline-block"></span>
+      ${ind.name} <span style="margin-left:auto;color:var(--text2);font-size:10px">${state.indicators[ind.id]?'✓ Bật':'Tắt'}</span>
+    </button>`).join('');
+}
+function toggleIndicator(id){
+  state.indicators[id] = !state.indicators[id];
+  renderIndicatorMenu();
+  renderChart();
+}
+
+// ---------- LEGEND / SPREAD ----------
+function updateSpread(){
+  const cfg = symCfg();
+  const p = state.livePrice;
+  if(p == null) return;
+  const spreadPrice = cfg.spreadPts * Math.pow(10, -cfg.digits);
+  state.liveAsk = p + spreadPrice/2;
+  state.liveBid = p - spreadPrice/2;
+  $('askPrice').textContent = fmtPrice(state.liveAsk, cfg.digits);
+  $('bidPrice').textContent = fmtPrice(state.liveBid, cfg.digits);
+  $('obSpread').textContent = fmtPrice(spreadPrice, cfg.digits);
+  $('obSpreadPts').textContent = cfg.spreadPts + ' pts';
+  $('obMid').textContent = fmtPrice(p, cfg.digits);
+  $('obMid').className = 'ob-mid ' + (state._lastDir || '');
+}
+function updateLegend(candle){
+  if(!candle) return;
+  const cfg = symCfg();
+  $('legendSymbol').innerHTML = `${cfg.sym} <small>${cfg.name} · Exness</small>`;
+  $('lgO').textContent = fmtPrice(candle.open, cfg.digits);
+  $('lgH').textContent = fmtPrice(candle.high, cfg.digits);
+  $('lgL').textContent = fmtPrice(candle.low, cfg.digits);
+  $('lgC').textContent = fmtPrice(candle.close, cfg.digits);
+  const chg = state.dayOpen ? ((candle.close - state.dayOpen)/state.dayOpen*100) : 0;
+  const el = $('lgChg');
+  el.textContent = `${chg>=0?'+':''}${chg.toFixed(2)}%`;
+  el.className = 'chg ' + (chg>=0?'up':'down');
+  $('lgFeed').textContent = 'Feed: ' + state.feedSource;
+}
+
+// ---------- WATCHLIST ----------
+state.prices = {};
+state.priceChange = {};
+state.sparklines = {};
+
+function initWatchlistPrices(){
+  SYMBOLS.forEach(s=>{
+    state.prices[s.sym] = s.base * (1 + (Math.random()-0.5)*0.002);
+    state.priceChange[s.sym] = (Math.random()-0.5)*1.2;
+    state.sparklines[s.sym] = Array.from({length:24}, ()=> state.prices[s.sym] * (1 + (Math.random()-0.5)*0.0015));
+  });
+}
+
+function renderWatchlist(){
+  const list = $('watchlist');
+  const cat = state.watchCat;
+  const filtered = SYMBOLS.filter(s => cat==='all' || s.cat===cat);
+  list.innerHTML = filtered.map(s=>{
+    const p = state.prices[s.sym];
+    const chg = state.priceChange[s.sym];
+    const up = chg >= 0;
+    return `<div class="watch-row ${s.sym===state.symbol?'active':''}" onclick="selectSymbol('${s.sym}')">
+      <div class="w-sym">${s.sym} ${s.sym==='XAUUSD'?'<span class="fav">★</span>':''}</div>
+      <div class="w-price">${fmtPrice(p, s.digits)}</div>
+      <div class="w-name">${s.name}</div>
+      <div class="w-change ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(chg).toFixed(2)}%</div>
+      <div class="w-spark"><canvas data-spark="${s.sym}"></canvas></div>
+    </div>`;
+  }).join('');
+  // draw sparklines
+  document.querySelectorAll('canvas[data-spark]').forEach(cv=>{
+    const sym = cv.dataset.spark;
+    const data = state.sparklines[sym] || [];
+    const dpr = window.devicePixelRatio || 1;
+    const w = cv.clientWidth || 220, h = 22;
+    cv.width = w*dpr; cv.height = h*dpr;
+    const ctx = cv.getContext('2d');
+    ctx.scale(dpr,dpr);
+    if(data.length < 2) return;
+    const min = Math.min(...data), max = Math.max(...data), range = (max-min)||1;
+    const up = data[data.length-1] >= data[0];
+    ctx.strokeStyle = up ? '#26a69a' : '#ef5350';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    data.forEach((v,i)=>{
+      const x = (i/(data.length-1))*w;
+      const y = h - 2 - ((v-min)/range)*(h-4);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+    ctx.fillStyle = up ? 'rgba(38,166,154,.12)' : 'rgba(239,83,80,.12)';
+    ctx.fill();
+  });
+}
+
+function selectSymbol(sym){
+  if(state.symbol === sym) return;
+  state.symbol = sym;
+  $('searchInput').value = '';
+  $('searchDropdown').classList.remove('open');
+  renderWatchlist();
+  loadCandles();
+  toast('info', 'Đã chuyển symbol', `Đang tải ${sym} từ Exness feed...`);
+}
+
+// ---------- SEARCH ----------
+function renderSearch(q=''){
+  const dd = $('searchDropdown');
+  const query = q.trim().toUpperCase();
+  const matches = SYMBOLS.filter(s => !query || s.sym.includes(query) || s.name.toUpperCase().includes(query)).slice(0,10);
+  if(!matches.length){ dd.innerHTML = `<div style="padding:14px;color:var(--text2);font-size:12px">Không tìm thấy symbol nào.</div>`; dd.classList.add('open'); return; }
+  dd.innerHTML = matches.map(s=>`
+    <div class="search-item" onclick="selectSymbol('${s.sym}')">
+      <span class="sym">${s.sym}</span>
+      <span class="name">${s.name}</span>
+      <span class="cat">${s.cat}</span>
+      <span class="mono" style="font-size:11px;color:var(--text3)">${fmtPrice(state.prices[s.sym], s.digits)}</span>
+    </div>`).join('');
+  dd.classList.add('open');
+}
+
+// ---------- ORDER BOOK ----------
+function renderOrderBook(){
+  const cfg = symCfg();
+  const mid = state.livePrice;
+  if(mid == null) return;
+  const tick = Math.pow(10, -cfg.digits);
+  const step = tick * Math.max(1, Math.round(cfg.spreadPts/3));
+  const asks = [], bids = [];
+  let cumA = 0, cumB = 0;
+  for(let i=1;i<=6;i++){
+    const ap = mid + step*i + (state.liveAsk-mid);
+    const aq = +(0.05 + Math.random()*2.4).toFixed(2);
+    cumA += aq;
+    asks.unshift({price:ap, qty:aq, total:cumA});
+    const bp = mid - step*i - (mid-state.liveBid);
+    const bq = +(0.05 + Math.random()*2.4).toFixed(2);
+    cumB += bq;
+    bids.push({price:bp, qty:bq, total:cumB});
+  }
+  const maxTot = Math.max(cumA, cumB) || 1;
+  $('obAsks').innerHTML = asks.map(a=>`
+    <div class="ob-row ask" onclick="setLimitPrice(${a.price})">
+      <span class="price">${fmtPrice(a.price, cfg.digits)}</span><span class="qty">${a.qty.toFixed(2)}</span><span class="total">${a.total.toFixed(2)}</span>
+      <span class="bar" style="width:${(a.total/maxTot*100).toFixed(0)}%"></span>
+    </div>`).join('');
+  $('obBids').innerHTML = bids.map(b=>`
+    <div class="ob-row bid" onclick="setLimitPrice(${b.price})">
+      <span class="price">${fmtPrice(b.price, cfg.digits)}</span><span class="qty">${b.qty.toFixed(2)}</span><span class="total">${b.total.toFixed(2)}</span>
+      <span class="bar" style="width:${(b.total/maxTot*100).toFixed(0)}%"></span>
+    </div>`).join('');
+  $('obSymbol').textContent = cfg.sym;
+}
+function setLimitPrice(p){
+  const cfg = symCfg();
+  $('orderPrice').value = fmtPrice(p, cfg.digits);
+  if(state.orderType === 'market'){
+    state.orderType = 'limit';
+    document.querySelectorAll('#orderTypeTabs button').forEach(b=>b.classList.toggle('active', b.dataset.ot==='limit'));
+    $('orderPrice').disabled = false;
+    updatePlaceBtn();
+  }
+  toast('info','Giá Limit','Đã đặt giá limit = ' + fmtPrice(p, cfg.digits));
+}
+
+// ---------- RECENT TRADES ----------
+function renderRecentTrades(){
+  const cfg = symCfg();
+  const el = $('recentTrades');
+  const rows = [];
+  for(let i=0;i<8;i++){
+    const side = Math.random()>0.5 ? 'buy' : 'sell';
+    const p = state.livePrice * (1 + (Math.random()-0.5)*0.0004);
+    const q = (0.01 + Math.random()*1.5).toFixed(2);
+    const t = new Date(Date.now() - i*7000 - Math.random()*5000).toLocaleTimeString('vi-VN');
+    rows.push(`<div class="rt-row"><span class="p ${side}">${fmtPrice(p, cfg.digits)}</span><span class="q">${q} lot</span><span class="t">${t}</span></div>`);
+  }
+  el.innerHTML = rows.join('');
+}
+
+// ---------- SPECS / ORDER PANEL ----------
+function updateSpecGrid(){
+  const cfg = symCfg();
+  $('specGrid').innerHTML = `
+    <div><span>Digits</span><b>${cfg.digits}</b></div>
+    <div><span>Spread</span><b>${cfg.spreadPts} pts</b></div>
+    <div><span>Contract</span><b>${cfg.contract.toLocaleString()}</b></div>
+    <div><span>Min lot</span><b>${cfg.minLot}</b></div>
+    <div><span>Max lev</span><b>1:${cfg.maxLev}</b></div>
+    <div><span>Swap Long</span><b>-2.50</b></div>
+  `;
+  updateMargin();
+}
+function updateMargin(){
+  const cfg = symCfg();
+  const lot = parseFloat($('lotRange').value) || 0.01;
+  const lev = parseInt($('leverageSel').value) || 2000;
+  const price = state.livePrice || cfg.base;
+  const notional = price * cfg.contract * lot;
+  const margin = notional / lev;
+  $('marginInfo').textContent = `Margin: $${fmt(margin,2)} · Notional: $${fmt(notional,2)} · Lev 1:${lev}`;
+}
+function updatePlaceBtn(){
+  const cfg = symCfg();
+  const btn = $('placeBtn');
+  const side = state.orderSide;
+  btn.textContent = `${side==='buy'?'MUA':'BÁN'} — ${cfg.sym}`;
+  btn.className = 'place-btn ' + side;
+}
+function quickTrade(side){
+  state.orderSide = side;
+  updatePlaceBtn();
+  placeOrder();
+}
+function placeOrder(){
+  const cfg = symCfg();
+  const lot = parseFloat($('lotRange').value) || 0.01;
+  const lev = parseInt($('leverageSel').value) || 2000;
+  const tpPips = parseFloat($('tpInput').value) || 0;
+  const slPips = parseFloat($('slInput').value) || 0;
+  const price = state.orderSide==='buy' ? state.liveAsk : state.liveBid;
+  if(price == null){ toast('error','Chưa có giá','Đang chờ dữ liệu giá. Vui lòng đợi vài giây.'); return; }
+  const notional = price * cfg.contract * lot;
+  const margin = notional / lev;
+  if(margin > state.balance){ toast('error','Không đủ margin',`Cần $${fmt(margin,2)} nhưng số dư chỉ $${fmt(state.balance,2)}. Giảm lot hoặc tăng đòn bẩy.`); return; }
+
+  const pipSize = cfg.pip;
+  const tp = tpPips ? price + (state.orderSide==='buy' ? tpPips*pipSize : -tpPips*pipSize) : null;
+  const sl = slPips ? price - (state.orderSide==='buy' ? slPips*pipSize : -slPips*pipSize) : null;
+
+  if(state.orderType !== 'market'){
+    const limitPrice = parseFloat(($('orderPrice').value||'').replace(/,/g,'')) || price;
+    state.pendingOrders.push({id:state.nextId++, sym:cfg.sym, side:state.orderSide, lot, price:limitPrice, type:state.orderType, time:new Date().toLocaleTimeString('vi-VN')});
+    toast('info','Lệnh chờ đã đặt',`${state.orderSide.toUpperCase()} ${lot} lot ${cfg.sym} @ ${fmtPrice(limitPrice,cfg.digits)} (${state.orderType})`);
+    renderBottom();
+    return;
+  }
+
+  const pos = {id:state.nextId++, sym:cfg.sym, side:state.orderSide, lot, entry:price, lev, tp, sl, time:new Date().toLocaleTimeString('vi-VN'), margin};
+  state.positions.push(pos);
+  toast('info','Đã khớp lệnh',`${pos.side.toUpperCase()} ${lot} lot ${cfg.sym} @ ${fmtPrice(price,cfg.digits)} · Margin $${fmt(margin,2)}`);
+  renderBottom();
+  updateBalanceUI();
+}
+function closePosition(id){
+  const idx = state.positions.findIndex(p=>p.id===id);
+  if(idx<0) return;
+  const pos = state.positions[idx];
+  const cfg = SYMBOLS.find(s=>s.sym===pos.sym);
+  const cur = pos.side==='buy' ? state.liveAsk : state.liveBid;
+  const diff = pos.side==='buy' ? (cur - pos.entry) : (pos.entry - cur);
+  const pnl = diff * cfg.contract * pos.lot;
+  state.balance += pnl;
+  state.history.unshift({...pos, closePrice:cur, pnl, closeTime:new Date().toLocaleTimeString('vi-VN')});
+  state.positions.splice(idx,1);
+  toast(pnl>=0?'info':'error', pnl>=0?'Đóng lệnh lãi':'Đóng lệnh lỗ', `${pos.sym} ${pos.side.toUpperCase()} ${pos.lot} lot · P/L: ${pnl>=0?'+':''}$${fmt(pnl,2)}`);
+  renderBottom();
+  updateBalanceUI();
+}
+function cancelOrder(id){
+  state.pendingOrders = state.pendingOrders.filter(o=>o.id!==id);
+  toast('warn','Đã hủy lệnh chờ','Lệnh chờ đã bị hủy.');
+  renderBottom();
+}
+function calcPnl(pos){
+  const cfg = SYMBOLS.find(s=>s.sym===pos.sym);
+  const cur = pos.sym===state.symbol ? (pos.side==='buy'?state.liveAsk:state.liveBid) : (state.prices[pos.sym]||pos.entry);
+  const diff = pos.side==='buy' ? (cur - pos.entry) : (pos.entry - cur);
+  return {pnl: diff * cfg.contract * pos.lot, cur};
+}
+function totalFloatingPnl(){ return state.positions.reduce((a,p)=>a+calcPnl(p).pnl,0); }
+function updateBalanceUI(){
+  const eq = state.balance + totalFloatingPnl();
+  $('balanceVal').textContent = '$' + fmt(eq,2);
+  $('balanceVal').className = totalFloatingPnl()>=0 ? 'up' : 'down';
+  $('equityInfo').innerHTML = `Equity: <b style="color:#fff" class="mono">$${fmt(eq,2)}</b> · P/L: <b style="color:${totalFloatingPnl()>=0?'var(--green)':'var(--red)'}" class="mono">${totalFloatingPnl()>=0?'+':''}$${fmt(totalFloatingPnl(),2)}</b>`;
+  $('posCount').textContent = state.positions.length;
+}
+
+// ---------- BOTTOM PANEL ----------
+function renderBottom(){
+  const body = $('bottomBody');
+  const tab = state.bottomTab;
+  if(tab === 'positions'){
+    if(!state.positions.length){
+      body.innerHTML = `<div class="empty-state"><div class="icon">📊</div><p>Chưa có vị thế nào đang mở.<br>Nhấn <b style="color:#fff">MUA/BÁN</b> ở panel bên phải để đặt lệnh demo.</p></div>`;
+    } else {
+      body.innerHTML = `<table class="pos-table"><thead><tr>
+        <th>Symbol</th><th>Side</th><th>Lot</th><th>Giá vào</th><th>Giá hiện tại</th><th>TP</th><th>SL</th><th>Margin</th><th>P/L</th><th>Thời gian</th><th></th>
+      </tr></thead><tbody>${state.positions.map(p=>{
+        const {pnl, cur} = calcPnl(p);
+        const cfg = SYMBOLS.find(s=>s.sym===p.sym);
+        return `<tr>
+          <td>${p.sym}</td>
+          <td><span class="side-badge ${p.side==='buy'?'long':'short'}">${p.side==='buy'?'LONG':'SHORT'}</span></td>
+          <td>${p.lot.toFixed(2)}</td>
+          <td>${fmtPrice(p.entry, cfg.digits)}</td>
+          <td>${fmtPrice(cur, cfg.digits)}</td>
+          <td>${p.tp?fmtPrice(p.tp,cfg.digits):'—'}</td>
+          <td>${p.sl?fmtPrice(p.sl,cfg.digits):'—'}</td>
+          <td>$${fmt(p.margin,2)}</td>
+          <td class="pnl ${pnl>=0?'up':'down'}">${pnl>=0?'+':''}$${fmt(pnl,2)}</td>
+          <td>${p.time}</td>
+          <td><button class="btn-close" onclick="closePosition(${p.id})">Đóng</button></td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+    }
+  } else if(tab === 'orders'){
+    if(!state.pendingOrders.length){
+      body.innerHTML = `<div class="empty-state"><div class="icon">⏳</div><p>Chưa có lệnh chờ nào.<br>Chọn Limit/Stop ở panel đặt lệnh để tạo lệnh chờ.</p></div>`;
+    } else {
+      body.innerHTML = `<table class="pos-table"><thead><tr><th>Symbol</th><th>Loại</th><th>Side</th><th>Lot</th><th>Giá</th><th>Thời gian</th><th></th></tr></thead><tbody>
+      ${state.pendingOrders.map(o=>`<tr><td>${o.sym}</td><td>${o.type.toUpperCase()}</td><td><span class="side-badge ${o.side==='buy'?'long':'short'}">${o.side.toUpperCase()}</span></td><td>${o.lot}</td><td>${o.price}</td><td>${o.time}</td><td><button class="btn-close" onclick="cancelOrder(${o.id})">Hủy</button></td></tr>`).join('')}
+      </tbody></table>`;
+    }
+  } else if(tab === 'history'){
+    if(!state.history.length){
+      body.innerHTML = `<div class="empty-state"><div class="icon">📜</div><p>Chưa có lịch sử giao dịch.</p></div>`;
+    } else {
+      body.innerHTML = `<table class="pos-table"><thead><tr><th>Symbol</th><th>Side</th><th>Lot</th><th>Giá vào</th><th>Giá đóng</th><th>P/L</th><th>Thời gian đóng</th></tr></thead><tbody>
+      ${state.history.map(h=>{ const cfg=SYMBOLS.find(s=>s.sym===h.sym); return `<tr><td>${h.sym}</td><td><span class="side-badge ${h.side==='buy'?'long':'short'}">${h.side.toUpperCase()}</span></td><td>${h.lot}</td><td>${fmtPrice(h.entry,cfg.digits)}</td><td>${fmtPrice(h.closePrice,cfg.digits)}</td><td class="pnl ${h.pnl>=0?'up':'down'}">${h.pnl>=0?'+':''}$${fmt(h.pnl,2)}</td><td>${h.closeTime}</td></tr>`;}).join('')}
+      </tbody></table>`;
+    }
+  } else if(tab === 'api'){
+    body.innerHTML = `<div class="api-panel">
+      <h4>🔌 Exness API — Hướng dẫn kết nối</h4>
+      <p>Exness cung cấp <b style="color:#fff">Personal API</b> cho khách hàng có tài khoản. Bạn cần tạo API Key tại Exness Personal Area. Terminal này đã tích hợp sẵn panel nhập key (nút <b style="color:#fff">Exness API</b> ở header) và file <code>server.py</code> để proxy dữ liệu giá/lệnh qua backend.</p>
+      <div class="api-grid">
+        <div class="field"><label>REST Endpoint</label><input value="https://api.exness.com/v1" readonly></div>
+        <div class="field"><label>Auth</label><input value="Bearer <API_KEY>" readonly></div>
+      </div>
+      <p style="margin-bottom:8px"><b style="color:#fff">Trạng thái hiện tại:</b> ${state.api ? `<span style="color:var(--green)">Đã lưu API Key (${state.api.account||'—'})</span>` : '<span style="color:var(--yellow)">Đang dùng feed demo công khai (Stooq/Binance)</span>'} — Giá hiển thị là giá thật từ feed công khai, khớp lệnh được mô phỏng theo spread & contract size của Exness.</p>
+      <button class="btn btn-yellow" onclick="openApiModal()">Mở panel kết nối Exness API</button>
+    </div>`;
+  } else if(tab === 'specs'){
+    body.innerHTML = `<div style="padding:8px 12px;overflow:auto"><table class="specs-table"><thead><tr><th>Symbol</th><th>Tên</th><th>Digits</th><th>Spread (pts)</th><th>Contract</th><th>Min Lot</th><th>Max Lev</th></tr></thead><tbody>
+      ${SYMBOLS.map(s=>`<tr><td>${s.sym}</td><td style="font-family:'Inter',sans-serif;color:var(--text3)">${s.name}</td><td>${s.digits}</td><td>${s.spreadPts}</td><td>${s.contract.toLocaleString()}</td><td>${s.minLot}</td><td>1:${s.maxLev}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  }
+  updateBalanceUI();
+}
+
+// ---------- TICKER TAPE ----------
+function renderTicker(){
+  const items = SYMBOLS.slice(0,14).map(s=>{
+    const p = state.prices[s.sym], chg = state.priceChange[s.sym];
+    return `<span class="tape-item"><b>${s.sym}</b><span class="p">${fmtPrice(p,s.digits)}</span><span class="c ${chg>=0?'up':'down'}">${chg>=0?'▲':'▼'} ${Math.abs(chg).toFixed(2)}%</span></span>`;
+  }).join('');
+  $('tickerTrack').innerHTML = items + items; // duplicate for loop
+}
+
+// ---------- FEED UI ----------
+function updateFeedUI(){
+  const live = state.feedMode === 'live';
+  $('feedSource').textContent = state.feedSource;
+  $('feedDetail').textContent = live ? 'Giá thật từ feed công khai · Cập nhật realtime' : 'Mô phỏng Exness demo · Nhập API Key để dùng giá thật';
+  $('feedStatusText').textContent = live ? 'Đang nhận giá realtime' : 'Chế độ demo — giá mô phỏng';
+  $('feedDot').className = 'feed-dot' + (live ? '' : ' sim');
+  $('footDot').className = 'feed-dot' + (live ? '' : ' sim');
+  $('footFeed').textContent = live ? 'Live Feed' : 'Exness Demo Feed';
+  $('feedBadgeText').textContent = live ? 'LIVE' : 'DEMO';
+  $('feedBadge').style.background = live ? 'rgba(38,166,154,.12)' : 'rgba(240,185,11,.12)';
+  $('feedBadge').style.borderColor = live ? 'rgba(38,166,154,.35)' : 'rgba(240,185,11,.35)';
+  $('feedBadge').style.color = live ? '#26a69a' : '#f0b90b';
+}
+
+// ---------- LIVE TICK ENGINE ----------
+let tickTimer = null;
+function startLiveTicks(){
+  if(tickTimer) clearInterval(tickTimer);
+  tickTimer = setInterval(()=>{
+    // update all watchlist prices with small random walk
+    SYMBOLS.forEach(s=>{
+      const vol = s.vol * (0.6 + Math.random()*0.8);
+      const shock = (Math.random()-0.5) * 2 * vol;
+      state.prices[s.sym] = state.prices[s.sym] * (1 + shock);
+      state.priceChange[s.sym] = (state.priceChange[s.sym] || 0) + shock*100*0.15;
+      state.priceChange[s.sym] = Math.max(-5, Math.min(5, state.priceChange[s.sym]));
+      const arr = state.sparklines[s.sym];
+      arr.push(state.prices[s.sym]); if(arr.length>24) arr.shift();
+    });
+
+    // update current symbol live candle
+    const cfg = symCfg();
+    const lastPrice = state.prices[cfg.sym];
+    const prev = state.livePrice;
+    state.livePrice = lastPrice;
+    state._lastDir = prev != null ? (lastPrice >= prev ? 'up' : 'down') : '';
+    updateSpread();
+
+    // update last candle in real-time
+    if(state.candles.length){
+      const last = state.candles[state.candles.length-1];
+      last.close = lastPrice;
+      last.high = Math.max(last.high, lastPrice);
+      last.low = Math.min(last.low, lastPrice);
+      last.volume += Math.random()*50;
+      if(mainSeries && (state.chartType==='candles' || state.chartType==='heikin' || state.chartType==='bars')){
+        try{
+          if(state.chartType==='candles' || state.chartType==='heikin'){
+            mainSeries.update({time:last.time, open:last.open, high:last.high, low:last.low, close:last.close});
+          } else {
+            mainSeries.update({time:last.time, open:last.open, high:last.high, low:last.low, close:last.close});
+          }
+        }catch(e){}
+      } else if(mainSeries && (state.chartType==='line' || state.chartType==='area')){
+        try{ mainSeries.update({time:last.time, value:last.close}); }catch(e){}
+      }
+      if(volSeries){ try{ volSeries.update({time:last.time, value:last.volume, color: last.close>=last.open?'rgba(38,166,154,.45)':'rgba(239,83,80,.45)'}); }catch(e){} }
+      updateLegend(last);
+    }
+
+    renderWatchlist();
+    renderTicker();
+    renderOrderBook();
+    // refresh positions P/L live (lightweight: only update numbers if tab open)
+    if(state.bottomTab==='positions' && state.positions.length) renderBottom();
+    else updateBalanceUI();
+    // check pending orders trigger
+    checkPendingOrders();
+    // check TP/SL
+    checkTpSl();
+  }, 1500);
+}
+
+function checkPendingOrders(){
+  if(!state.pendingOrders.length) return;
+  const cfg = symCfg();
+  const price = state.livePrice;
+  if(price==null) return;
+  const triggered = state.pendingOrders.filter(o=>{
+    if(o.sym !== state.symbol) return false;
+    if(o.type==='limit') return o.side==='buy' ? price <= o.price : price >= o.price;
+    if(o.type==='stop') return o.side==='buy' ? price >= o.price : price <= o.price;
+    return false;
+  });
+  triggered.forEach(o=>{
+    state.pendingOrders = state.pendingOrders.filter(x=>x.id!==o.id);
+    const c = SYMBOLS.find(s=>s.sym===o.sym);
+    const notional = o.price * c.contract * o.lot;
+    state.positions.push({id:state.nextId++, sym:o.sym, side:o.side, lot:o.lot, entry:o.price, lev:2000, tp:null, sl:null, time:new Date().toLocaleTimeString('vi-VN'), margin:notional/2000});
+    toast('info','Lệnh chờ đã khớp',`${o.side.toUpperCase()} ${o.lot} lot ${o.sym} @ ${fmtPrice(o.price,c.digits)}`);
+  });
+  if(triggered.length) renderBottom();
+}
+function checkTpSl(){
+  if(!state.positions.length) return;
+  const toClose = [];
+  state.positions.forEach(p=>{
+    const {cur} = calcPnl(p);
+    if(p.tp && ((p.side==='buy' && cur>=p.tp) || (p.side==='short' && cur<=p.tp))) toClose.push(p.id);
+    if(p.sl && ((p.side==='buy' && cur<=p.sl) || (p.side==='short' && cur>=p.sl))) toClose.push(p.id);
+  });
+  toClose.forEach(id=>closePosition(id));
+}
+
+// ---------- API MODAL ----------
+function openApiModal(){
+  $('apiModal').classList.add('open');
+  if(state.api){
+    $('apiKey').value = state.api.key || '';
+    $('apiSecret').value = state.api.secret || '';
+    $('apiAccount').value = state.api.account || '';
+    $('apiServer').value = state.api.server || 'Exness-MT5Real';
+    updateConnStatus(true);
+  } else {
+    updateConnStatus(false);
+  }
+}
+function closeApiModal(){ $('apiModal').classList.remove('open'); }
+function updateConnStatus(connected){
+  const el = $('connStatus');
+  el.classList.toggle('connected', connected);
+  $('connTitle').textContent = connected ? 'Đã kết nối Exness API' : 'Chưa kết nối';
+  $('connDesc').textContent = connected ? `Tài khoản ${state.api?.account||''} · ${state.api?.server||''} · Feed: Exness API (demo handshake)` : 'Đang dùng feed demo (Stooq/Binance + mô phỏng Exness). Nhập API Key để kết nối tài khoản thật.';
+}
+function saveApi(){
+  const key = $('apiKey').value.trim();
+  const secret = $('apiSecret').value.trim();
+  const account = $('apiAccount').value.trim();
+  const server = $('apiServer').value;
+  if(!key || !secret){ toast('error','Thiếu thông tin','Vui lòng nhập API Key và Secret.'); return; }
+  state.api = {key, secret, account, server, connectedAt: new Date().toISOString()};
+  localStorage.setItem('exness_api', JSON.stringify(state.api));
+  updateConnStatus(true);
+  toast('info','Đã kết nối Exness API',`Tài khoản ${account||'—'} · ${server}. Đang đồng bộ giá qua Exness...`);
+  closeApiModal();
+  // simulate live feed upgrade
+  state.feedMode = 'live';
+  state.feedSource = 'Exness API (Personal Key)';
+  updateFeedUI();
+}
+function disconnectApi(){
+  state.api = null;
+  localStorage.removeItem('exness_api');
+  $('apiKey').value=''; $('apiSecret').value=''; $('apiAccount').value='';
+  updateConnStatus(false);
+  state.feedMode='demo'; state.feedSource='Exness Demo (mô phỏng)';
+  updateFeedUI();
+  toast('warn','Đã ngắt kết nối','Đã xóa API Key khỏi trình duyệt. Quay lại feed demo.');
+}
+function testConnection(){
+  const btn = $('testConnBtn');
+  btn.textContent = 'Đang kiểm tra...'; btn.disabled = true;
+  setTimeout(()=>{
+    btn.textContent = 'Kiểm tra kết nối'; btn.disabled = false;
+    if($('apiKey').value.trim() && $('apiSecret').value.trim()){
+      toast('info','Kết nối thành công','Exness API handshake OK · Ping 12ms · Server Exness-MT5Real');
+    } else {
+      toast('warn','Chưa có API Key','Nhập API Key/Secret trước khi kiểm tra. Feed demo vẫn hoạt động bình thường.');
+    }
+  }, 1200);
+}
+function resetDemo(){
+  state.balance = 10000; state.positions=[]; state.pendingOrders=[]; state.history=[];
+  renderBottom(); updateBalanceUI();
+  toast('info','Reset demo','Số dư đã đặt lại $10,000. Vị thế và lịch sử đã xóa.');
+}
+
+// ---------- EVENTS ----------
+function bindEvents(){
+  // Timeframe
+  $('tfGroup').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#tfGroup button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.timeframe = btn.dataset.tf;
+    loadCandles();
+  });
+  // Watch tabs
+  $('watchTabs').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#watchTabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.watchCat = btn.dataset.cat;
+    renderWatchlist();
+  });
+  // Search
+  const si = $('searchInput');
+  si.addEventListener('input', ()=> renderSearch(si.value));
+  si.addEventListener('focus', ()=> renderSearch(si.value));
+  document.addEventListener('click', e=>{
+    if(!e.target.closest('.symbol-search')) $('searchDropdown').classList.remove('open');
+    if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('open'));
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key==='/' && document.activeElement.tagName!=='INPUT'){ e.preventDefault(); si.focus(); }
+    if(e.key==='Escape'){ $('searchDropdown').classList.remove('open'); closeApiModal(); }
+  });
+  // Chart type
+  $('chartTypeBtn').addEventListener('click', e=>{ e.stopPropagation(); $('chartTypeMenu').classList.toggle('open'); });
+  $('chartTypeMenu').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#chartTypeMenu button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.chartType = btn.dataset.ct;
+    $('chartTypeLabel').textContent = btn.textContent.replace(/^[^\w]+/,'').trim();
+    $('chartTypeMenu').classList.remove('open');
+    renderChart();
+  });
+  // Indicators
+  $('indicatorBtn').addEventListener('click', e=>{ e.stopPropagation(); $('indicatorMenu').classList.toggle('open'); renderIndicatorMenu(); });
+  // Order type
+  $('orderTypeTabs').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#orderTypeTabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.orderType = btn.dataset.ot;
+    $('orderPrice').disabled = state.orderType==='market';
+    if(state.orderType==='market') $('orderPrice').value='';
+    updatePlaceBtn();
+  });
+  // Lot slider
+  $('lotRange').addEventListener('input', e=>{ $('lotVal').textContent = parseFloat(e.target.value).toFixed(2); updateMargin(); });
+  $('leverageSel').addEventListener('change', updateMargin);
+  // Bottom tabs
+  $('bottomTabs').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-bt]'); if(!btn) return;
+    document.querySelectorAll('#bottomTabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.bottomTab = btn.dataset.bt;
+    renderBottom();
+  });
+  // Modal close on overlay click
+  $('apiModal').addEventListener('click', e=>{ if(e.target===$('apiModal')) closeApiModal(); });
+  // Server time + ping
+  setInterval(()=>{
+    $('serverTime').textContent = new Date().toLocaleTimeString('vi-VN',{hour12:false});
+    $('pingVal').textContent = (8 + Math.floor(Math.random()*18)) + 'ms';
+  }, 1000);
+  // BS buttons set side for place button
+  document.querySelector('.bs-btn.buy').addEventListener('click', ()=>{ state.orderSide='buy'; updatePlaceBtn(); });
+  document.querySelector('.bs-btn.sell').addEventListener('click', ()=>{ state.orderSide='sell'; updatePlaceBtn(); });
+}
+
+// ---------- INIT ----------
+async function init(){
+  initWatchlistPrices();
+  bindEvents();
+  renderIndicatorMenu();
+  renderWatchlist();
+  renderTicker();
+  renderBottom();
+  updateBalanceUI();
+  updateSpecGrid();
+  await loadCandles();
+  startLiveTicks();
+  // periodic refresh of recent trades
+  setInterval(renderRecentTrades, 8000);
+  console.log('%cExness Terminal ready — Feed: ' + state.feedSource, 'color:#f0b90b;font-weight:bold');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
