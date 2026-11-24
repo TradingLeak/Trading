@@ -1,38 +1,73 @@
-# Deploy Exness Terminal to GitHub Pages automatically
-# One-time setup (30 seconds):
-#   Repo Settings → Pages → Source: "GitHub Actions" → Save
-#   Then this workflow runs on every push and publishes the site.
 name: Deploy GitHub Pages
 
 on:
   push:
-    branches: ["main", "arena/4ac21b02-trading"]
+    branches: ["main", "arena/e9245974-trading"]
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.artifact-name.outputs.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Prepare public files
+        run: |
+          mkdir -p public
+          cp index.html api-config.js public/
+      - name: Choose an artifact name unique to this attempt
+        id: artifact-name
+        run: echo "name=github-pages-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          name: ${{ steps.artifact-name.outputs.name }}
+          path: public
+      - name: Wait until the artifact is visible to the deployment API
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_NAME: ${{ steps.artifact-name.outputs.name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..24}; do
+            count=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" \
+              | jq --arg name "$ARTIFACT_NAME" '[.artifacts[] | select(.name == $name and .expired == false)] | length') || count=0
+            if [ "$count" = "1" ]; then
+              echo "Artifact is available: $ARTIFACT_NAME"
+              exit 0
+            fi
+            echo "Waiting for artifact metadata ($attempt/24)..."
+            sleep 5
+          done
+          echo "::error::Artifact did not become visible within two minutes."
+          exit 1
+
+  deploy:
+    # Feature branches validate the build only; only main may update the public site.
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact_name }}
