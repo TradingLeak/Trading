@@ -4,6 +4,22 @@ Website giao diện giao dịch kiểu **TradingView / OpenMarket**, kết nối
 
 ![Terminal](https://img.shields.io/badge/Exness-Terminal-2962ff) ![Chart](https://img.shields.io/badge/Lightweight-Charts-26a69a)
 
+## 🌐 Mở như website thật trên GitHub Pages
+
+Website được deploy tự động qua GitHub Actions (file `.github/workflows/pages.yml`).
+Chỉ cần bật **1 lần duy nhất** (30 giây):
+
+1. Mở [Settings → Pages](https://github.com/TradingLeak/Trading/settings/pages) của repo
+2. Mục **Build and deployment → Source**, chọn **GitHub Actions** → **Save**
+3. Chờ workflow chạy xong (~1 phút) → website live tại:
+
+   **👉 https://tradingleak.github.io/Trading/**
+
+Từ đó, mỗi lần push code mới, website tự cập nhật. Xem tiến trình tại tab **Actions** của repo.
+
+> Cách khác (không dùng Actions): tại Settings → Pages, chọn Source = **Deploy from a branch**,
+> Branch = `arena/4ac21b02-trading`, Folder = `/ (root)` → Save. Cả 2 cách đều ra cùng URL trên.
+
 ## Tính năng
 
 | Hạng mục | Chi tiết |
