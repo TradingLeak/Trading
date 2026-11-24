@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="api-config.js"></script>
 <style>
 :root{
   --bg:#131722; --bg2:#1e222d; --bg3:#2a2e39; --bg4:#363c4e;
@@ -390,7 +391,7 @@ input,select{font-family:inherit;outline:none}
 <div class="modal-overlay" id="apiModal">
   <div class="modal">
     <div class="modal-head"><h2>Thông tin Exness API</h2><button class="close-btn" onclick="closeApiModal()">✕</button></div>
-    <div class="modal-body"><p>Chưa có kết nối dữ liệu giá Exness thực sự. Không nhập API key hoặc thông tin tài khoản vào website này.</p><p>Biểu đồ có thể tải dữ liệu lịch sử công khai từ Binance hoặc Stooq. Tick và danh sách theo dõi được mô phỏng.</p></div>
+    <div class="modal-body"><p>Nguồn Exness cần backend riêng. Chỉ cấu hình khóa trên backend; không nhập khóa vào website.</p><p>Khi backend hoạt động, biểu đồ hiển thị nến giá bid Exness, cập nhật định kỳ mỗi 30 giây; không phải luồng tick trực tiếp. Các mã khác trong danh sách theo dõi vẫn mô phỏng.</p><p>Khi backend lỗi, nguồn dự phòng hoặc mô phỏng được ghi rõ trên biểu đồ.</p></div>
     <div class="modal-foot"><button class="btn btn-outline" onclick="clearStoredApi()">Xóa API key đã lưu trước đây</button><button class="btn btn-primary" onclick="closeApiModal()">Đóng</button></div>
   </div>
 </div>
@@ -562,36 +563,63 @@ async function fetchBinance(cfg, tf){
   return data.map(k => ({time: Math.floor(k[0]/1000), open:+k[1], high:+k[2], low:+k[3], close:+k[4], volume:+k[5]}));
 }
 
-async function loadCandles(){
+let loadGeneration = 0;
+let refreshBusy = false;
+async function fetchExnessCandles(cfg, tf){
+  const base = (window.EXNESS_BACKEND_URL || '').trim().replace(/\/$/, '');
+  if (!base) throw new Error('Chưa cấu hình backend');
+  const url = new URL(base);
+  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('Backend phải là URL HTTPS gốc');
+  const params = new URLSearchParams({symbol:cfg.sym, timeframe:tf});
+  const response = await fetch(`${url.origin}/api/candles?${params}`, {signal:AbortSignal.timeout(35000)});
+  if (!response.ok) throw new Error('Backend HTTP ' + response.status);
+  const data = await response.json();
+  if (data.source !== 'exness' || data.symbol !== cfg.sym || data.timeframe !== tf || !Array.isArray(data.candles) || !data.candles.length) throw new Error('Dữ liệu không hợp lệ');
+  if (!data.candles.every((c,i,a) => Number.isFinite(c.time) && ['open','high','low','close','volume'].every(k=>Number.isFinite(c[k])) && (!i || a[i-1].time < c.time))) throw new Error('Nến không hợp lệ');
+  return data;
+}
+
+async function loadCandles({silent=false} = {}){
+  const generation = ++loadGeneration;
   const cfg = symCfg();
   const tf = state.timeframe;
-  $('chartLoading').style.display = 'flex';
-  let candles = null, source = '';
-  // 1) Binance for crypto (most reliable CORS + realtime)
-  if(cfg.binance){
-    try { candles = await fetchBinance(cfg, tf); source = 'Binance (lịch sử) + tick mô phỏng'; state.feedMode='live'; }
+  if (!silent) $('chartLoading').style.display = 'flex';
+  let candles = null, source = '', mode = 'demo';
+  if (window.EXNESS_BACKEND_URL) {
+    try {
+      const data = await fetchExnessCandles(cfg, tf);
+      candles = data.candles;
+      source = 'Exness bid · cập nhật ' + new Date(data.retrieved_at).toLocaleTimeString('vi-VN', {timeZone:'Asia/Ho_Chi_Minh'});
+      mode = 'exness';
+    } catch(e) { console.warn('Không tải được nến Exness:', e.message); }
+  }
+  if (!candles && cfg.binance){
+    try { candles = await fetchBinance(cfg, tf); source = 'Binance (lịch sử) + tick mô phỏng'; mode='live'; }
     catch(e){ console.warn('Binance fail', e); }
   }
-  // 2) Stooq for forex/metal/index
-  if(!candles){
-    try { candles = await fetchStooq(cfg, tf); source = 'Stooq (lịch sử) + tick mô phỏng'; state.feedMode='live'; }
+  if (!candles){
+    try { candles = await fetchStooq(cfg, tf); source = 'Stooq (lịch sử) + tick mô phỏng'; mode='live'; }
     catch(e){ console.warn('Stooq fail', e); }
   }
-  // 3) Synthetic fallback (Exness demo simulation)
-  if(!candles){
-    candles = genSyntheticCandles(cfg, tf);
-    source = 'Dữ liệu mô phỏng';
-    state.feedMode = 'demo';
-  }
+  if (!candles){ candles = genSyntheticCandles(cfg, tf); source = 'Dữ liệu mô phỏng'; }
+  if (generation !== loadGeneration) return;
+  if (window.EXNESS_BACKEND_URL && mode !== 'exness') source = 'Exness không khả dụng · ' + source;
+  state.feedMode = mode;
   state.candles = candles;
   state.feedSource = source;
   const last = candles[candles.length-1];
   state.livePrice = last.close;
   state.dayOpen = candles[0].open;
+  if (mode === 'exness') {
+    state.prices[cfg.sym] = last.close;
+    state.priceChange[cfg.sym] = (last.close / candles[0].open - 1) * 100;
+    state.sparklines[cfg.sym] = candles.slice(-24).map(c=>c.close);
+  }
   $('chartLoading').style.display = 'none';
   updateFeedUI();
   renderChart();
   renderWatchlist();
+  renderTicker();
   updateLegend(last);
 }
 
@@ -965,14 +993,15 @@ function renderTicker(){
 
 // ---------- FEED UI ----------
 function updateFeedUI(){
-  const live = state.feedMode === 'live';
+  const exness = state.feedMode === 'exness';
+  const live = state.feedMode === 'live' || exness;
   $('feedSource').textContent = state.feedSource;
-  $('feedDetail').textContent = live ? 'Dữ liệu lịch sử từ nguồn công khai; tick và watchlist mô phỏng' : 'Giá và tick mô phỏng; không kết nối Exness';
-  $('feedStatusText').textContent = live ? 'Tick mô phỏng' : 'Chế độ demo — giá mô phỏng';
+  $('feedDetail').textContent = exness ? 'Nến bid Exness mỗi 30 giây; các mã khác mô phỏng' : live ? 'Dữ liệu lịch sử từ nguồn công khai; tick và watchlist mô phỏng' : 'Giá và tick mô phỏng; không kết nối Exness';
+  $('feedStatusText').textContent = exness ? 'Nến Exness (không phải tick trực tiếp)' : live ? 'Tick mô phỏng' : 'Chế độ demo — giá mô phỏng';
   $('feedDot').className = 'feed-dot' + (live ? '' : ' sim');
   $('footDot').className = 'feed-dot' + (live ? '' : ' sim');
-  $('footFeed').textContent = live ? 'Dữ liệu lịch sử + tick mô phỏng' : 'Giá mô phỏng';
-  $('feedBadgeText').textContent = live ? 'LỊCH SỬ' : 'DEMO';
+  $('footFeed').textContent = exness ? 'Nến Exness · cập nhật 30 giây' : live ? 'Dữ liệu lịch sử + tick mô phỏng' : 'Giá mô phỏng';
+  $('feedBadgeText').textContent = exness ? 'EXNESS' : live ? 'LỊCH SỬ' : 'DEMO';
   $('feedBadge').style.background = live ? 'rgba(38,166,154,.12)' : 'rgba(240,185,11,.12)';
   $('feedBadge').style.borderColor = live ? 'rgba(38,166,154,.35)' : 'rgba(240,185,11,.35)';
   $('feedBadge').style.color = live ? '#26a69a' : '#f0b90b';
@@ -985,6 +1014,7 @@ function startLiveTicks(){
   tickTimer = setInterval(()=>{
     // update all watchlist prices with small random walk
     SYMBOLS.forEach(s=>{
+      if (state.feedMode === 'exness' && s.sym === state.symbol) return;
       const vol = s.vol * (0.6 + Math.random()*0.8);
       const shock = (Math.random()-0.5) * 2 * vol;
       state.prices[s.sym] = state.prices[s.sym] * (1 + shock);
@@ -993,6 +1023,8 @@ function startLiveTicks(){
       const arr = state.sparklines[s.sym];
       arr.push(state.prices[s.sym]); if(arr.length>24) arr.shift();
     });
+
+    if (state.feedMode === 'exness') { renderWatchlist(); renderTicker(); return; }
 
     // update current symbol live candle
     const cfg = symCfg();
@@ -1102,6 +1134,11 @@ async function init(){
   renderBottom();
   await loadCandles();
   startLiveTicks();
+  setInterval(async ()=>{
+    if (!window.EXNESS_BACKEND_URL || refreshBusy || document.hidden) return;
+    refreshBusy = true;
+    try { await loadCandles({silent:true}); } finally { refreshBusy = false; }
+  }, 30000);
   console.log('%cExness Terminal ready — Feed: ' + state.feedSource, 'color:#f0b90b;font-weight:bold');
 }
 

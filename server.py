@@ -1,103 +1,175 @@
 #!/usr/bin/env python3
+"""Read-only Exness candle proxy. Credentials remain on the server.
+
+See README.md for deployment, limitations and configuration.
 """
-Exness Terminal — Backend proxy server (optional, for real Exness API)
+import base64
+import hashlib
+import json
+import math
+import os
+import re
+import threading
+import time
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode, urlsplit
 
-Exness không cung cấp API giá công khai miễn phí. Để dùng giá thật từ
-tài khoản Exness của bạn, chạy server này kèm Personal API Key, sau đó
-trỏ frontend tới http://localhost:8000/api/...
+import requests
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from flask import Flask, jsonify, request
 
-Cách lấy API Key:
-  1. Đăng nhập exness.com → Personal Area → Settings → API
-  2. Tạo Personal API Key (bật quyền đọc giá / giao dịch nếu cần)
-  3. export EXNESS_API_KEY=... EXNESS_API_SECRET=... EXNESS_ACCOUNT=...
-  4. python3 server.py
+app = Flask(__name__)
+FRONTEND_ORIGIN = os.environ.get('FRONTEND_ORIGIN', 'https://tradingleak.github.io')
+ACCOUNT = os.environ.get('EXN_ACCOUNT_ID', '')
+KEY_ID = os.environ.get('EXN_API_KEY', '')
+PRIVATE_KEY = os.environ.get('EXN_PRIVATE_KEY', '')
+GATEWAY = os.environ.get('EXN_DISCOVERY_BASE_URL', '')
+ALLOWED_SUFFIXES = tuple(x.strip().lower().lstrip('.') for x in os.environ.get('EXN_ALLOWED_HOST_SUFFIXES', 'exness.com').split(',') if x.strip())
+SYMBOLS = frozenset('XAUUSD XAGUSD EURUSD GBPUSD USDJPY USDCHF AUDUSD USDCAD EURGBP EURJPY BTCUSD ETHUSD LTCUSD XRPUSD US30 NAS100 SPX500 GER40 UK100 JPN225 XBRUSD XTIUSD'.split())
+TIMEFRAMES = {'1m': ('M1', 60), '5m': ('M5', 300), '15m': ('M15', 900), '1h': ('H1', 3600), '4h': ('H4', 14400), '1d': ('D1', 86400), '1w': ('W1', 604800)}
+CACHE_SECONDS = 30
+_lock = threading.Lock()
+_cache = {}
+_access_point = None
+_last_request = 0.0
 
-Server này:
-  - Serve file index.html tại http://localhost:8000
-  - Proxy /api/price?symbol=XAUUSD → Exness REST (khi có key)
-  - Fallback sang Stooq/Binance public feed khi chưa có key
-  - Thêm CORS header để frontend gọi được từ mọi origin
 
-Chạy:  python3 server.py  →  mở http://localhost:8000
-"""
-import os, json, urllib.request, urllib.parse
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+def b64(value):
+    return base64.urlsafe_b64encode(value).decode('ascii').rstrip('=')
 
-EXNESS_KEY = os.environ.get("EXNESS_API_KEY", "")
-EXNESS_SECRET = os.environ.get("EXNESS_API_SECRET", "")
-EXNESS_ACCOUNT = os.environ.get("EXNESS_ACCOUNT", "")
-EXNESS_BASE = os.environ.get("EXNESS_API_BASE", "https://api.exness.com/v1")
 
-# Map symbol Exness -> Stooq / Binance fallback
-FALLBACK = {
-    "XAUUSD": ("xauusd", None), "EURUSD": ("eurusd", None), "GBPUSD": ("gbpusd", None),
-    "USDJPY": ("usdjpy", None), "BTCUSD": ("btcusd", "BTCUSDT"), "ETHUSD": ("ethusd", "ETHUSDT"),
-}
+def signing_key(text):
+    text = text.strip()
+    if text.startswith('-----BEGIN PRIVATE KEY-----'):
+        key = serialization.load_pem_private_key(text.encode(), password=None)
+        if not isinstance(key, Ed25519PrivateKey):
+            raise ValueError('Expected Ed25519 key')
+        return key
+    if not re.fullmatch(r'[0-9a-fA-F]{128}', text):
+        raise ValueError('Invalid private key format')
+    raw = bytes.fromhex(text)
+    key = Ed25519PrivateKey.from_private_bytes(raw[:32])
+    public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+    if public != raw[32:]:
+        raise ValueError('Invalid private key')
+    return key
 
-def fetch_json(url, headers=None):
-    req = urllib.request.Request(url, headers=headers or {})
-    with urllib.request.urlopen(req, timeout=10) as r:
-        return json.loads(r.read().decode())
 
-def get_price(symbol: str):
-    symbol = symbol.upper()
-    # 1) Try Exness REST API if key present
-    if EXNESS_KEY:
-        try:
-            # NOTE: endpoint thực tế phụ thuộc loại API Exness cấp cho bạn
-            # (Personal API / MT5 bridge). Điều chỉnh path cho khớp tài khoản.
-            url = f"{EXNESS_BASE}/symbols/{symbol}/tick"
-            headers = {"Authorization": f"Bearer {EXNESS_KEY}", "X-Account-Id": EXNESS_ACCOUNT}
-            data = fetch_json(url, headers)
-            return {"symbol": symbol, "source": "exness", "data": data}
-        except Exception as e:
-            return {"symbol": symbol, "source": "exness-error", "error": str(e)}
-    # 2) Fallback: Stooq daily CSV (last close)
-    stooq, binance = FALLBACK.get(symbol, (symbol.lower(), None))
+def checked_base(value):
+    url = urlsplit(value)
+    host = (url.hostname or '').lower()
+    if (url.scheme != 'https' or url.username or url.password or url.port not in (None, 443)
+            or url.path not in ('', '/') or url.query or url.fragment
+            or not any(host == suffix or host.endswith('.' + suffix) for suffix in ALLOWED_SUFFIXES)):
+        raise ValueError('Invalid upstream host')
+    return 'https://' + host
+
+
+def signed_get(base, path):
+    global _last_request
+    delay = 1.0 - (time.monotonic() - _last_request)
+    if delay > 0:
+        time.sleep(delay)
+    stamp = int(time.time() * 1000)
+    payload = json.dumps({'api_key': KEY_ID, 'idempotency_key': '', 'timestamp': stamp,
+                          'sign_version': 1, 'method': 'GET', 'path': path,
+                          'body_hash': b64(hashlib.sha256(b'').digest())}, separators=(',', ':')).encode()
+    headers = {'EXN-API-KEY': KEY_ID, 'EXN-IDEMPOTENCY-KEY': '', 'EXN-TIMESTAMP': str(stamp),
+               'EXN-SIGN-VERSION': '1', 'EXN-DATA': b64(payload),
+               'EXN-SIGN': b64(signing_key(PRIVATE_KEY).sign(payload)), 'User-Agent': 'Trading-ReadOnly/1.0'}
+    _last_request = time.monotonic()
+    response = requests.get(checked_base(base) + path, headers=headers, timeout=12, allow_redirects=False)
+    if response.status_code != 200:
+        raise UpstreamError(response.status_code)
+    return response.json()
+
+
+class UpstreamError(Exception):
+    def __init__(self, status):
+        self.status = status
+
+
+def candles(symbol, tf):
+    global _access_point
+    if not re.fullmatch(r'[1-9][0-9]{0,19}', ACCOUNT) or int(ACCOUNT) > 2**64 - 1:
+        raise ValueError('Account not configured')
+    if not KEY_ID or not PRIVATE_KEY or not GATEWAY:
+        raise ValueError('Credentials not configured')
+    if _access_point is None:
+        discovery = signed_get(GATEWAY, '/v1/trading/access-point?' + urlencode({'account_id': ACCOUNT}))
+        _access_point = checked_base(discovery['access_point'])
+    wire_tf, seconds = TIMEFRAMES[tf]
+    now = datetime.now(timezone.utc)
+    # 300 candles maximum; the exclusive end includes the current candle.
+    start = now - timedelta(seconds=seconds * 300)
+    iso = lambda dt: dt.isoformat(timespec='seconds').replace('+00:00', 'Z')
+    query = urlencode({'instrument': symbol, 'timeframe': wire_tf, 'from': iso(start),
+                       'to': iso(now), 'price_type': 'bid'})
     try:
-        url = f"https://stooq.com/q/d/l/?s={stooq}&i=d"
-        with urllib.request.urlopen(url, timeout=10) as r:
-            text = r.read().decode()
-        lines = text.strip().split("\n")
-        last = lines[-1].split(",")
-        return {"symbol": symbol, "source": "stooq", "date": last[0], "close": float(last[4])}
-    except Exception as e:
-        return {"symbol": symbol, "source": "error", "error": str(e)}
+        result = signed_get(_access_point, f'/v1/market-data/accounts/{ACCOUNT}/candles?{query}')
+    except UpstreamError as exc:
+        if exc.status in (401, 403, 404, 502, 503):
+            _access_point = None
+        raise
+    rows = []
+    for c in result.get('candles', []):
+        timestamp = datetime.fromisoformat(c['time'].replace('Z', '+00:00'))
+        if timestamp.tzinfo is None:
+            raise ValueError('Naive candle timestamp')
+        row = {'time': int(timestamp.timestamp())}
+        for name in ('open', 'high', 'low', 'close'):
+            row[name] = float(c[name])
+        row['volume'] = float(c.get('volume') or 0)
+        if not all(math.isfinite(row[n]) for n in ('open', 'high', 'low', 'close', 'volume')):
+            raise ValueError('Invalid candle')
+        rows.append(row)
+    rows.sort(key=lambda x: x['time'])
+    if not rows or any(a['time'] >= b['time'] for a, b in zip(rows, rows[1:])):
+        raise ValueError('No usable candles')
+    return {'symbol': symbol, 'timeframe': tf, 'source': 'exness', 'price_type': 'bid',
+            'retrieved_at': iso(now), 'candles': rows}
 
-class Handler(SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        super().end_headers()
 
-    def do_OPTIONS(self):
-        self.send_response(204); self.end_headers()
+@app.after_request
+def cors(response):
+    if request.headers.get('Origin') == FRONTEND_ORIGIN:
+        response.headers['Access-Control-Allow-Origin'] = FRONTEND_ORIGIN
+        response.headers['Vary'] = 'Origin'
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
 
-    def do_GET(self):
-        parsed = urllib.parse.urlparse(self.path)
-        if parsed.path == "/api/price":
-            qs = urllib.parse.parse_qs(parsed.query)
-            symbol = qs.get("symbol", ["XAUUSD"])[0]
-            body = json.dumps(get_price(symbol)).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
-        if parsed.path == "/api/health":
-            body = json.dumps({"ok": True, "exness_configured": bool(EXNESS_KEY)}).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
-        super().do_GET()
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8000"))
-    print(f"Exness Terminal → http://localhost:{port}")
-    print(f"Exness API key: {'CONFIGURED' if EXNESS_KEY else 'not set (using public fallback)'}")
-    HTTPServer(("0.0.0.0", port), Handler).serve_forever()
+@app.get('/api/health')
+def health():
+    return jsonify(status='configured' if all((ACCOUNT, KEY_ID, PRIVATE_KEY, GATEWAY)) else 'not_configured',
+                   note='Configuration only; not a connectivity test')
+
+
+@app.get('/api/candles')
+def candle_endpoint():
+    symbol, tf = request.args.get('symbol', ''), request.args.get('timeframe', '')
+    if symbol not in SYMBOLS or tf not in TIMEFRAMES:
+        return jsonify(error='Unsupported symbol or timeframe'), 400
+    # A busy proxy rejects excess requests instead of accumulating an unbounded queue.
+    if not _lock.acquire(blocking=False):
+        return jsonify(error='Backend busy; retry shortly'), 429
+    try:
+        entry = _cache.get((symbol, tf))
+        if entry and time.monotonic() - entry[0] < CACHE_SECONDS:
+            return jsonify(entry[1])
+        try:
+            data = candles(symbol, tf)
+        except UpstreamError as exc:
+            return jsonify(error='Exness request failed', upstream_status=exc.status), 502
+        except (ValueError, KeyError, TypeError, requests.RequestException):
+            return jsonify(error='Exness unavailable or server configuration invalid'), 503
+        _cache[(symbol, tf)] = (time.monotonic(), data)
+        return jsonify(data)
+    finally:
+        _lock.release()
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', '8000')), debug=False)
