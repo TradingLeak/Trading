@@ -80,9 +80,9 @@ input,select{font-family:inherit;outline:none}
 .tape-item .c.up{color:var(--green)} .tape-item .c.down{color:var(--red)}
 
 /* ===== MAIN LAYOUT ===== */
-.main{display:grid;grid-template-columns:264px 1fr 320px;height:calc(100vh - var(--header-h) - var(--ticker-h) - var(--footer-h) - 196px);min-height:380px}
-@media(max-width:1100px){.main{grid-template-columns:220px 1fr 280px}}
-@media(max-width:860px){.main{grid-template-columns:1fr}.left-panel,.right-panel{display:none}}
+.main{display:grid;grid-template-columns:264px minmax(0, 1fr);height:calc(100vh - var(--header-h) - var(--ticker-h) - var(--footer-h) - 196px);min-height:0}
+@media(max-width:1100px){.main{grid-template-columns:220px minmax(0, 1fr)}}
+@media(max-width:860px){.main{grid-template-columns:1fr}.left-panel{display:none}}
 
 /* LEFT: WATCHLIST */
 .left-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
@@ -145,64 +145,11 @@ input,select{font-family:inherit;outline:none}
 .chart-crosshair-info.show{display:block}
 .chart-crosshair-info b{color:#fff}
 
-/* RIGHT: ORDER PANEL */
-.right-panel{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
-.order-panel{padding:12px;border-bottom:1px solid var(--border)}
-.order-panel h3{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.order-panel h3 .exness-tag{font-size:9px;background:rgba(240,185,11,.15);color:var(--yellow);padding:2px 7px;border-radius:4px;letter-spacing:.5px}
-.bs-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.bs-btn{height:44px;border-radius:9px;font-size:14px;font-weight:800;letter-spacing:.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .15s;color:#fff}
-.bs-btn small{font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;opacity:.9}
-.bs-btn.buy{background:linear-gradient(135deg,#089981,#26a69a)}
-.bs-btn.buy:hover{filter:brightness(1.15);transform:translateY(-1px)}
-.bs-btn.sell{background:linear-gradient(135deg,#f23645,#ef5350)}
-.bs-btn.sell:hover{filter:brightness(1.15);transform:translateY(-1px)}
-.bs-btn:active{transform:scale(.97)}
-.order-type-tabs{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:2px;margin-bottom:12px}
-.order-type-tabs button{flex:1;padding:5px;font-size:11px;font-weight:600;color:var(--text2);border-radius:5px}
-.order-type-tabs button.active{background:var(--bg4);color:#fff}
+/* Form fields */
 .field{margin-bottom:10px}
 .field label{display:block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);margin-bottom:5px}
-.field input,.field select{width:100%;height:34px;background:var(--bg);border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:#fff;font-size:13px;font-family:'JetBrains Mono',monospace;transition:border .15s}
+.field input,.field select{width:100%;height:34px;background:var(--bg);border:1px solid var(--border2);border-radius:7px;padding:0 10px;color:#fff;font-size:13px;font-family:'JetBrains Mono',monospace}
 .field input:focus,.field select:focus{border-color:var(--blue)}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lot-slider{display:flex;align-items:center;gap:8px}
-.lot-slider input[type=range]{flex:1;accent-color:var(--blue);height:4px}
-.lot-slider .lot-val{font-family:'JetBrains Mono',monospace;font-weight:700;color:#fff;background:var(--bg);border:1px solid var(--border2);padding:5px 10px;border-radius:6px;min-width:64px;text-align:center;font-size:12px}
-.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:11px;margin-bottom:12px}
-.spec-grid div{display:flex;justify-content:space-between}
-.spec-grid span{color:var(--text2)} .spec-grid b{color:#fff;font-family:'JetBrains Mono',monospace;font-weight:600}
-.place-btn{width:100%;height:40px;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:.5px;transition:all .15s;color:#fff}
-.place-btn.buy{background:var(--green2)} .place-btn.buy:hover{background:var(--green)}
-.place-btn.sell{background:var(--red2)} .place-btn.sell:hover{background:var(--red)}
-.place-btn:disabled{opacity:.5;cursor:not-allowed}
-.margin-info{font-size:11px;color:var(--text2);text-align:center;margin-top:7px;font-family:'JetBrains Mono',monospace}
-
-/* ORDER BOOK */
-.orderbook{padding:12px;border-bottom:1px solid var(--border)}
-.orderbook h3{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.ob-head,.ob-row{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 0;position:relative}
-.ob-head{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:5px}
-.ob-head span:nth-child(2),.ob-row span:nth-child(2){text-align:right}
-.ob-head span:nth-child(3),.ob-row span:nth-child(3){text-align:right}
-.ob-row{cursor:pointer}
-.ob-row:hover{background:var(--bg3)}
-.ob-row .bar{position:absolute;top:0;bottom:0;right:0;opacity:.14;pointer-events:none}
-.ob-row.ask .bar{background:var(--red)} .ob-row.bid .bar{background:var(--green)}
-.ob-row.ask .price{color:var(--red)} .ob-row.bid .price{color:var(--green)}
-.ob-row .price{font-weight:600} .ob-row .qty{color:var(--text3)} .ob-row .total{color:var(--text2)}
-.ob-spread{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin:7px 0;font-size:11px}
-.ob-spread b{font-family:'JetBrains Mono',monospace;color:#fff}
-.ob-spread span{color:var(--text2)}
-.ob-mid{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:#fff;text-align:center;padding:4px 0}
-.ob-mid.up{color:var(--green)} .ob-mid.down{color:var(--red)}
-
-/* RECENT TRADES */
-.recent-trades{padding:12px}
-.recent-trades h3{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:8px}
-.rt-row{display:grid;grid-template-columns:1fr 1fr auto;font-size:11px;font-family:'JetBrains Mono',monospace;padding:3px 0;border-bottom:1px solid rgba(42,46,57,.5)}
-.rt-row .p.buy{color:var(--green)} .rt-row .p.sell{color:var(--red)}
-.rt-row .q{color:var(--text3);text-align:right} .rt-row .t{color:var(--text2);text-align:right}
 
 /* ===== BOTTOM PANEL ===== */
 .bottom-panel{height:196px;background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
@@ -213,30 +160,6 @@ input,select{font-family:inherit;outline:none}
 .bottom-tabs .count{background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px}
 .bottom-tabs .count.red{background:var(--red2)}
 .bottom-body{flex:1;overflow:auto}
-table.pos-table{width:100%;border-collapse:collapse;font-size:12px}
-table.pos-table th{position:sticky;top:0;background:var(--bg2);text-align:left;padding:7px 12px;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);z-index:1}
-table.pos-table td{padding:7px 12px;border-bottom:1px solid rgba(42,46,57,.6);font-family:'JetBrains Mono',monospace;color:var(--text)}
-table.pos-table td:first-child{font-family:'Inter',sans-serif;font-weight:700;color:#fff}
-table.pos-table tr:hover td{background:var(--bg3)}
-.side-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.5px;font-family:'Inter',sans-serif}
-.side-badge.long{background:rgba(38,166,154,.18);color:var(--green)}
-.side-badge.short{background:rgba(239,83,80,.18);color:var(--red)}
-.pnl.up{color:var(--green);font-weight:700} .pnl.down{color:var(--red);font-weight:700}
-.btn-close{background:rgba(239,83,80,.15);color:var(--red);border:1px solid rgba(239,83,80,.4);padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Inter',sans-serif;transition:all .12s}
-.btn-close:hover{background:var(--red);color:#fff}
-.empty-state{text-align:center;padding:36px 20px;color:var(--text2)}
-.empty-state .icon{font-size:32px;margin-bottom:8px;opacity:.5}
-.empty-state p{font-size:12px;line-height:1.6}
-.api-panel{padding:16px;max-width:860px}
-.api-panel h4{font-size:13px;color:#fff;margin-bottom:6px}
-.api-panel p{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:12px}
-.api-panel code{background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--yellow);font-family:'JetBrains Mono',monospace}
-.api-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.api-grid .field{margin-bottom:0}
-.api-steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.api-step{flex:1;min-width:180px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;color:var(--text3)}
-.api-step b{display:block;color:#fff;font-size:12px;margin-bottom:3px}
-.api-step .num{display:inline-flex;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;margin-right:5px}
 .specs-table{width:100%;border-collapse:collapse;font-size:11px}
 .specs-table th,.specs-table td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
 .specs-table th{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
@@ -323,21 +246,9 @@ table.pos-table tr:hover td{background:var(--bg3)}
   </div>
 
   <div class="header-actions">
-    <button class="btn btn-ghost" onclick="openApiModal()" title="Kết nối Exness API">
+    <button class="btn btn-ghost" onclick="openApiModal()" title="Thông tin Exness API">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
       <span class="lbl">Exness API</span>
-    </button>
-    <button class="btn btn-outline" onclick="resetDemo()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      <span class="lbl">Reset Demo</span>
-    </button>
-    <div class="balance-box">
-      <small>Số dư Demo</small>
-      <b id="balanceVal">$10,000.00</b>
-    </div>
-    <button class="btn btn-yellow" onclick="document.getElementById('orderPanel').scrollIntoView({behavior:'smooth'})">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      <span class="lbl">Giao dịch</span>
     </button>
   </div>
 </header>
@@ -407,7 +318,7 @@ table.pos-table tr:hover td{background:var(--bg3)}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18"/><path d="M6 20v-6M11 20V8M16 20v-9M21 20V4"/></svg>
         Volume
       </button>
-      <button class="tb-btn" onclick="toast('info','Chụp chart','Tính năng demo — ảnh chart sẽ được lưu khi kết nối Exness API thật.')">
+      <button class="tb-btn" onclick="toast('info','Chụp chart','Tính năng chụp ảnh biểu đồ chưa được triển khai.')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         Chụp
       </button>
@@ -441,7 +352,7 @@ table.pos-table tr:hover td{background:var(--bg3)}
       <div id="subChartWrap"><div id="subChart"></div></div>
       <div class="chart-loading" id="chartLoading">
         <div class="spinner"></div>
-        <div>Đang tải dữ liệu giá từ Exness feed...</div>
+        <div>Đang tải dữ liệu biểu đồ...</div>
       </div>
       <div class="drawing-bar" id="drawingBar">
         <button class="active" title="Con trỏ" onclick="setTool(this,'cursor')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg></button>
@@ -456,75 +367,12 @@ table.pos-table tr:hover td{background:var(--bg3)}
     </div>
   </section>
 
-  <!-- RIGHT: ORDER PANEL -->
-  <aside class="right-panel">
-    <div class="order-panel" id="orderPanel">
-      <h3>Đặt lệnh <span class="exness-tag">EXNESS</span></h3>
-      <div class="bs-buttons">
-        <button class="bs-btn buy" onclick="quickTrade('buy')">MUA / BUY<small id="askPrice">—</small></button>
-        <button class="bs-btn sell" onclick="quickTrade('sell')">BÁN / SELL<small id="bidPrice">—</small></button>
-      </div>
-      <div class="order-type-tabs" id="orderTypeTabs">
-        <button class="active" data-ot="market">Market</button>
-        <button data-ot="limit">Limit</button>
-        <button data-ot="stop">Stop</button>
-      </div>
-      <div class="field">
-        <label>Khối lượng (Lot)</label>
-        <div class="lot-slider">
-          <input type="range" id="lotRange" min="0.01" max="5" step="0.01" value="0.10">
-          <div class="lot-val" id="lotVal">0.10</div>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Đòn bẩy</label>
-          <select id="leverageSel">
-            <option value="1">1:1</option><option value="10">1:10</option><option value="50">1:50</option>
-            <option value="100">1:100</option><option value="200">1:200</option>
-            <option value="500">1:500</option><option value="1000">1:1000</option>
-            <option value="2000" selected>1:2000</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Giá đặt lệnh</label>
-          <input type="text" id="orderPrice" placeholder="Market" disabled>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Take Profit (pips)</label><input type="number" id="tpInput" placeholder="VD: 200" min="0"></div>
-        <div class="field"><label>Stop Loss (pips)</label><input type="number" id="slInput" placeholder="VD: 100" min="0"></div>
-      </div>
-      <div class="spec-grid" id="specGrid"></div>
-      <button class="place-btn buy" id="placeBtn" onclick="placeOrder()">MUA — XAUUSD</button>
-      <div class="margin-info" id="marginInfo">Margin yêu cầu: —</div>
-    </div>
-
-    <div class="orderbook">
-      <h3>Sổ lệnh <span style="font-size:10px;color:var(--text2);letter-spacing:0;text-transform:none;font-weight:500" id="obSymbol">XAUUSD</span></h3>
-      <div class="ob-head"><span>Giá</span><span>Khối lượng</span><span>Tổng</span></div>
-      <div id="obAsks"></div>
-      <div class="ob-mid" id="obMid">—</div>
-      <div class="ob-spread"><span>Spread</span><b id="obSpread">—</b><span id="obSpreadPts">— pts</span></div>
-      <div id="obBids"></div>
-    </div>
-
-    <div class="recent-trades">
-      <h3>Giao dịch gần đây</h3>
-      <div id="recentTrades"><div style="color:var(--text2);font-size:11px;padding:6px 0">Đang chờ dữ liệu...</div></div>
-    </div>
-  </aside>
 </div>
 
 <!-- ===== BOTTOM PANEL ===== -->
 <div class="bottom-panel">
   <div class="bottom-tabs" id="bottomTabs">
-    <button class="active" data-bt="positions">Vị thế đang mở <span class="count" id="posCount">0</span></button>
-    <button data-bt="orders">Lệnh chờ</button>
-    <button data-bt="history">Lịch sử</button>
-    <button data-bt="api">Exness API</button>
-    <button data-bt="specs">Thông số Exness</button>
-    <span style="margin-left:auto;font-size:11px;color:var(--text2);padding-right:6px" id="equityInfo">Equity: <b style="color:#fff" class="mono">$10,000.00</b></span>
+    <button class="active" data-bt="specs">Thông số Exness</button>
   </div>
   <div class="bottom-body" id="bottomBody"></div>
 </div>
@@ -532,10 +380,8 @@ table.pos-table tr:hover td{background:var(--bg3)}
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
   <span class="f-item"><span class="feed-dot" id="footDot"></span><b id="footFeed">Exness Demo Feed</b></span>
-  <span class="f-item">Server: <b>Exness-MT5 Real</b></span>
-  <span class="f-item">Ping: <b id="pingVal">12ms</b></span>
   <div class="right">
-    <span class="f-item">Giờ server (GMT+7): <b id="serverTime">--:--:--</b></span>
+    <span class="f-item">Giờ Việt Nam: <b id="serverTime">--:--:--</b></span>
     <span class="f-item">© 2026 Exness Terminal</span>
   </div>
 </footer>
@@ -543,33 +389,9 @@ table.pos-table tr:hover td{background:var(--bg3)}
 <!-- ===== API MODAL ===== -->
 <div class="modal-overlay" id="apiModal">
   <div class="modal">
-    <div class="modal-head">
-      <h2><span style="background:var(--yellow);color:#131722;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">E</span> Kết nối Exness API</h2>
-      <button class="close-btn" onclick="closeApiModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="conn-status" id="connStatus">
-        <span class="dot"></span>
-        <div><b id="connTitle">Chưa kết nối</b><br><span id="connDesc">Đang dùng feed demo (Stooq/Binance + mô phỏng Exness). Nhập API Key để kết nối tài khoản thật.</span></div>
-      </div>
-      <div class="api-steps">
-        <div class="api-step"><b><span class="num">1</span> Mở Exness Personal Area</b>Đăng nhập exness.com → Cài đặt → API</div>
-        <div class="api-step"><b><span class="num">2</span> Tạo API Key</b>Tạo Personal API Key, bật quyền đọc giá & giao dịch</div>
-        <div class="api-step"><b><span class="num">3</span> Dán vào đây</b>Key được lưu local trong trình duyệt, không gửi đi đâu khác</div>
-      </div>
-      <div class="field"><label>Exness API Key</label><input type="text" id="apiKey" placeholder="VD: ex_xxxxxxxxxxxxxxxxxxxx"></div>
-      <div class="field"><label>Exness API Secret</label><input type="password" id="apiSecret" placeholder="••••••••••••••••••••"></div>
-      <div class="field"><label>Account ID (MT5)</label><input type="text" id="apiAccount" placeholder="VD: 12345678"></div>
-      <div class="field"><label>Server</label>
-        <select id="apiServer"><option>Exness-MT5Real</option><option>Exness-MT5Trial</option><option>Exness-MT4Real</option></select>
-      </div>
-      <p style="font-size:11px;color:var(--text2);line-height:1.6">⚠️ Exness không cung cấp API giá công khai miễn phí. API chính thức yêu cầu Personal API Key. Terminal này dùng feed công khai (Stooq/Binance) để hiển thị giá thật gần thời gian thực và mô phỏng khớp lệnh Exness. Xem <code>server.py</code> trong repo để proxy sang Exness REST/MT5 bridge khi có key.</p>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-outline" onclick="disconnectApi()">Ngắt kết nối</button>
-      <button class="btn btn-primary" id="testConnBtn" onclick="testConnection()">Kiểm tra kết nối</button>
-      <button class="btn btn-yellow" onclick="saveApi()">Lưu & Kết nối</button>
-    </div>
+    <div class="modal-head"><h2>Thông tin Exness API</h2><button class="close-btn" onclick="closeApiModal()">✕</button></div>
+    <div class="modal-body"><p>Chưa có kết nối dữ liệu giá Exness thực sự. Không nhập API key hoặc thông tin tài khoản vào website này.</p><p>Biểu đồ có thể tải dữ liệu lịch sử công khai từ Binance hoặc Stooq. Tick và danh sách theo dõi được mô phỏng.</p></div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="clearStoredApi()">Xóa API key đã lưu trước đây</button><button class="btn btn-primary" onclick="closeApiModal()">Đóng</button></div>
   </div>
 </div>
 
@@ -619,23 +441,13 @@ let state = {
   chartType: 'candles',
   showVolume: true,
   indicators: { ma20:false, ma50:false, ema20:false, bb:false, rsi:false, macd:false },
-  balance: 10000,
-  positions: [],
-  pendingOrders: [],
-  history: [],
   candles: [],
   livePrice: null,
-  liveBid: null,
-  liveAsk: null,
   dayOpen: null,
   feedMode: 'demo', // 'live' | 'demo'
   feedSource: 'Đang kết nối...',
   watchCat: 'all',
-  bottomTab: 'positions',
-  orderSide: 'buy',
-  orderType: 'market',
-  api: JSON.parse(localStorage.getItem('exness_api') || 'null'),
-  nextId: 1,
+  bottomTab: 'specs',
 };
 
 const $ = id => document.getElementById(id);
@@ -757,18 +569,18 @@ async function loadCandles(){
   let candles = null, source = '';
   // 1) Binance for crypto (most reliable CORS + realtime)
   if(cfg.binance){
-    try { candles = await fetchBinance(cfg, tf); source = 'Binance Public API (live)'; state.feedMode='live'; }
+    try { candles = await fetchBinance(cfg, tf); source = 'Binance (lịch sử) + tick mô phỏng'; state.feedMode='live'; }
     catch(e){ console.warn('Binance fail', e); }
   }
   // 2) Stooq for forex/metal/index
   if(!candles){
-    try { candles = await fetchStooq(cfg, tf); source = 'Stooq Public Feed (live)'; state.feedMode='live'; }
+    try { candles = await fetchStooq(cfg, tf); source = 'Stooq (lịch sử) + tick mô phỏng'; state.feedMode='live'; }
     catch(e){ console.warn('Stooq fail', e); }
   }
   // 3) Synthetic fallback (Exness demo simulation)
   if(!candles){
     candles = genSyntheticCandles(cfg, tf);
-    source = 'Exness Demo (mô phỏng)';
+    source = 'Dữ liệu mô phỏng';
     state.feedMode = 'demo';
   }
   state.candles = candles;
@@ -776,16 +588,11 @@ async function loadCandles(){
   const last = candles[candles.length-1];
   state.livePrice = last.close;
   state.dayOpen = candles[0].open;
-  updateSpread();
   $('chartLoading').style.display = 'none';
   updateFeedUI();
   renderChart();
   renderWatchlist();
-  renderOrderBook();
-  renderRecentTrades();
   updateLegend(last);
-  updateSpecGrid();
-  updatePlaceBtn();
 }
 
 // ---------- CHART ----------
@@ -839,11 +646,12 @@ function renderChart(){
   if(ct === 'candles' || ct === 'heikin'){
     let d = data;
     if(ct === 'heikin'){
-      d = data.map((c,i)=>{
-        const o = i===0 ? (c.open+c.high+c.low+c.close)/4 : (d[i-1].open + d[i-1].close)/2;
+      d = [];
+      data.forEach((c,i)=>{
+        const o = i===0 ? (c.open+c.close)/2 : (d[i-1].open + d[i-1].close)/2;
         const cl = (c.open+c.high+c.low+c.close)/4;
         const h = Math.max(c.high, o, cl), l = Math.min(c.low, o, cl);
-        return {time:c.time, open:o, high:h, low:l, close:cl};
+        d.push({time:c.time, open:o, high:h, low:l, close:cl});
       });
     }
     mainSeries = chart.addCandlestickSeries({ upColor:'#26a69a', downColor:'#ef5350', wickUpColor:'#26a69a', wickDownColor:'#ef5350', borderVisible:false });
@@ -1012,7 +820,7 @@ function toggleVolume(){ state.showVolume = !state.showVolume; $('volBtn').class
 function setTool(btn, tool){
   document.querySelectorAll('#drawingBar button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  if(tool !== 'cursor') toast('info','Công cụ vẽ', `Đã chọn: ${btn.title}. (Demo — vẽ trực tiếp sẽ khả dụng khi kết nối Exness API thật.)`);
+  if(tool !== 'cursor') toast('info','Công cụ vẽ', `Đã chọn: ${btn.title}. (Công cụ vẽ chưa được triển khai.)`);
 }
 
 // ---------- INDICATORS MENU ----------
@@ -1038,20 +846,6 @@ function toggleIndicator(id){
 }
 
 // ---------- LEGEND / SPREAD ----------
-function updateSpread(){
-  const cfg = symCfg();
-  const p = state.livePrice;
-  if(p == null) return;
-  const spreadPrice = cfg.spreadPts * Math.pow(10, -cfg.digits);
-  state.liveAsk = p + spreadPrice/2;
-  state.liveBid = p - spreadPrice/2;
-  $('askPrice').textContent = fmtPrice(state.liveAsk, cfg.digits);
-  $('bidPrice').textContent = fmtPrice(state.liveBid, cfg.digits);
-  $('obSpread').textContent = fmtPrice(spreadPrice, cfg.digits);
-  $('obSpreadPts').textContent = cfg.spreadPts + ' pts';
-  $('obMid').textContent = fmtPrice(p, cfg.digits);
-  $('obMid').className = 'ob-mid ' + (state._lastDir || '');
-}
 function updateLegend(candle){
   if(!candle) return;
   const cfg = symCfg();
@@ -1130,7 +924,7 @@ function selectSymbol(sym){
   $('searchDropdown').classList.remove('open');
   renderWatchlist();
   loadCandles();
-  toast('info', 'Đã chuyển symbol', `Đang tải ${sym} từ Exness feed...`);
+  toast('info', 'Đã chuyển symbol', `Đang tải dữ liệu cho ${sym}...`);
 }
 
 // ---------- SEARCH ----------
@@ -1149,225 +943,15 @@ function renderSearch(q=''){
   dd.classList.add('open');
 }
 
-// ---------- ORDER BOOK ----------
-function renderOrderBook(){
-  const cfg = symCfg();
-  const mid = state.livePrice;
-  if(mid == null) return;
-  const tick = Math.pow(10, -cfg.digits);
-  const step = tick * Math.max(1, Math.round(cfg.spreadPts/3));
-  const asks = [], bids = [];
-  let cumA = 0, cumB = 0;
-  for(let i=1;i<=6;i++){
-    const ap = mid + step*i + (state.liveAsk-mid);
-    const aq = +(0.05 + Math.random()*2.4).toFixed(2);
-    cumA += aq;
-    asks.unshift({price:ap, qty:aq, total:cumA});
-    const bp = mid - step*i - (mid-state.liveBid);
-    const bq = +(0.05 + Math.random()*2.4).toFixed(2);
-    cumB += bq;
-    bids.push({price:bp, qty:bq, total:cumB});
-  }
-  const maxTot = Math.max(cumA, cumB) || 1;
-  $('obAsks').innerHTML = asks.map(a=>`
-    <div class="ob-row ask" onclick="setLimitPrice(${a.price})">
-      <span class="price">${fmtPrice(a.price, cfg.digits)}</span><span class="qty">${a.qty.toFixed(2)}</span><span class="total">${a.total.toFixed(2)}</span>
-      <span class="bar" style="width:${(a.total/maxTot*100).toFixed(0)}%"></span>
-    </div>`).join('');
-  $('obBids').innerHTML = bids.map(b=>`
-    <div class="ob-row bid" onclick="setLimitPrice(${b.price})">
-      <span class="price">${fmtPrice(b.price, cfg.digits)}</span><span class="qty">${b.qty.toFixed(2)}</span><span class="total">${b.total.toFixed(2)}</span>
-      <span class="bar" style="width:${(b.total/maxTot*100).toFixed(0)}%"></span>
-    </div>`).join('');
-  $('obSymbol').textContent = cfg.sym;
-}
-function setLimitPrice(p){
-  const cfg = symCfg();
-  $('orderPrice').value = fmtPrice(p, cfg.digits);
-  if(state.orderType === 'market'){
-    state.orderType = 'limit';
-    document.querySelectorAll('#orderTypeTabs button').forEach(b=>b.classList.toggle('active', b.dataset.ot==='limit'));
-    $('orderPrice').disabled = false;
-    updatePlaceBtn();
-  }
-  toast('info','Giá Limit','Đã đặt giá limit = ' + fmtPrice(p, cfg.digits));
-}
-
-// ---------- RECENT TRADES ----------
-function renderRecentTrades(){
-  const cfg = symCfg();
-  const el = $('recentTrades');
-  const rows = [];
-  for(let i=0;i<8;i++){
-    const side = Math.random()>0.5 ? 'buy' : 'sell';
-    const p = state.livePrice * (1 + (Math.random()-0.5)*0.0004);
-    const q = (0.01 + Math.random()*1.5).toFixed(2);
-    const t = new Date(Date.now() - i*7000 - Math.random()*5000).toLocaleTimeString('vi-VN');
-    rows.push(`<div class="rt-row"><span class="p ${side}">${fmtPrice(p, cfg.digits)}</span><span class="q">${q} lot</span><span class="t">${t}</span></div>`);
-  }
-  el.innerHTML = rows.join('');
-}
-
-// ---------- SPECS / ORDER PANEL ----------
-function updateSpecGrid(){
-  const cfg = symCfg();
-  $('specGrid').innerHTML = `
-    <div><span>Digits</span><b>${cfg.digits}</b></div>
-    <div><span>Spread</span><b>${cfg.spreadPts} pts</b></div>
-    <div><span>Contract</span><b>${cfg.contract.toLocaleString()}</b></div>
-    <div><span>Min lot</span><b>${cfg.minLot}</b></div>
-    <div><span>Max lev</span><b>1:${cfg.maxLev}</b></div>
-    <div><span>Swap Long</span><b>-2.50</b></div>
-  `;
-  updateMargin();
-}
-function updateMargin(){
-  const cfg = symCfg();
-  const lot = parseFloat($('lotRange').value) || 0.01;
-  const lev = parseInt($('leverageSel').value) || 2000;
-  const price = state.livePrice || cfg.base;
-  const notional = price * cfg.contract * lot;
-  const margin = notional / lev;
-  $('marginInfo').textContent = `Margin: $${fmt(margin,2)} · Notional: $${fmt(notional,2)} · Lev 1:${lev}`;
-}
-function updatePlaceBtn(){
-  const cfg = symCfg();
-  const btn = $('placeBtn');
-  const side = state.orderSide;
-  btn.textContent = `${side==='buy'?'MUA':'BÁN'} — ${cfg.sym}`;
-  btn.className = 'place-btn ' + side;
-}
-function quickTrade(side){
-  state.orderSide = side;
-  updatePlaceBtn();
-  placeOrder();
-}
-function placeOrder(){
-  const cfg = symCfg();
-  const lot = parseFloat($('lotRange').value) || 0.01;
-  const lev = parseInt($('leverageSel').value) || 2000;
-  const tpPips = parseFloat($('tpInput').value) || 0;
-  const slPips = parseFloat($('slInput').value) || 0;
-  const price = state.orderSide==='buy' ? state.liveAsk : state.liveBid;
-  if(price == null){ toast('error','Chưa có giá','Đang chờ dữ liệu giá. Vui lòng đợi vài giây.'); return; }
-  const notional = price * cfg.contract * lot;
-  const margin = notional / lev;
-  if(margin > state.balance){ toast('error','Không đủ margin',`Cần $${fmt(margin,2)} nhưng số dư chỉ $${fmt(state.balance,2)}. Giảm lot hoặc tăng đòn bẩy.`); return; }
-
-  const pipSize = cfg.pip;
-  const tp = tpPips ? price + (state.orderSide==='buy' ? tpPips*pipSize : -tpPips*pipSize) : null;
-  const sl = slPips ? price - (state.orderSide==='buy' ? slPips*pipSize : -slPips*pipSize) : null;
-
-  if(state.orderType !== 'market'){
-    const limitPrice = parseFloat(($('orderPrice').value||'').replace(/,/g,'')) || price;
-    state.pendingOrders.push({id:state.nextId++, sym:cfg.sym, side:state.orderSide, lot, price:limitPrice, type:state.orderType, time:new Date().toLocaleTimeString('vi-VN')});
-    toast('info','Lệnh chờ đã đặt',`${state.orderSide.toUpperCase()} ${lot} lot ${cfg.sym} @ ${fmtPrice(limitPrice,cfg.digits)} (${state.orderType})`);
-    renderBottom();
-    return;
-  }
-
-  const pos = {id:state.nextId++, sym:cfg.sym, side:state.orderSide, lot, entry:price, lev, tp, sl, time:new Date().toLocaleTimeString('vi-VN'), margin};
-  state.positions.push(pos);
-  toast('info','Đã khớp lệnh',`${pos.side.toUpperCase()} ${lot} lot ${cfg.sym} @ ${fmtPrice(price,cfg.digits)} · Margin $${fmt(margin,2)}`);
-  renderBottom();
-  updateBalanceUI();
-}
-function closePosition(id){
-  const idx = state.positions.findIndex(p=>p.id===id);
-  if(idx<0) return;
-  const pos = state.positions[idx];
-  const cfg = SYMBOLS.find(s=>s.sym===pos.sym);
-  const cur = pos.side==='buy' ? state.liveAsk : state.liveBid;
-  const diff = pos.side==='buy' ? (cur - pos.entry) : (pos.entry - cur);
-  const pnl = diff * cfg.contract * pos.lot;
-  state.balance += pnl;
-  state.history.unshift({...pos, closePrice:cur, pnl, closeTime:new Date().toLocaleTimeString('vi-VN')});
-  state.positions.splice(idx,1);
-  toast(pnl>=0?'info':'error', pnl>=0?'Đóng lệnh lãi':'Đóng lệnh lỗ', `${pos.sym} ${pos.side.toUpperCase()} ${pos.lot} lot · P/L: ${pnl>=0?'+':''}$${fmt(pnl,2)}`);
-  renderBottom();
-  updateBalanceUI();
-}
-function cancelOrder(id){
-  state.pendingOrders = state.pendingOrders.filter(o=>o.id!==id);
-  toast('warn','Đã hủy lệnh chờ','Lệnh chờ đã bị hủy.');
-  renderBottom();
-}
-function calcPnl(pos){
-  const cfg = SYMBOLS.find(s=>s.sym===pos.sym);
-  const cur = pos.sym===state.symbol ? (pos.side==='buy'?state.liveAsk:state.liveBid) : (state.prices[pos.sym]||pos.entry);
-  const diff = pos.side==='buy' ? (cur - pos.entry) : (pos.entry - cur);
-  return {pnl: diff * cfg.contract * pos.lot, cur};
-}
-function totalFloatingPnl(){ return state.positions.reduce((a,p)=>a+calcPnl(p).pnl,0); }
-function updateBalanceUI(){
-  const eq = state.balance + totalFloatingPnl();
-  $('balanceVal').textContent = '$' + fmt(eq,2);
-  $('balanceVal').className = totalFloatingPnl()>=0 ? 'up' : 'down';
-  $('equityInfo').innerHTML = `Equity: <b style="color:#fff" class="mono">$${fmt(eq,2)}</b> · P/L: <b style="color:${totalFloatingPnl()>=0?'var(--green)':'var(--red)'}" class="mono">${totalFloatingPnl()>=0?'+':''}$${fmt(totalFloatingPnl(),2)}</b>`;
-  $('posCount').textContent = state.positions.length;
-}
-
 // ---------- BOTTOM PANEL ----------
 function renderBottom(){
   const body = $('bottomBody');
   const tab = state.bottomTab;
-  if(tab === 'positions'){
-    if(!state.positions.length){
-      body.innerHTML = `<div class="empty-state"><div class="icon">📊</div><p>Chưa có vị thế nào đang mở.<br>Nhấn <b style="color:#fff">MUA/BÁN</b> ở panel bên phải để đặt lệnh demo.</p></div>`;
-    } else {
-      body.innerHTML = `<table class="pos-table"><thead><tr>
-        <th>Symbol</th><th>Side</th><th>Lot</th><th>Giá vào</th><th>Giá hiện tại</th><th>TP</th><th>SL</th><th>Margin</th><th>P/L</th><th>Thời gian</th><th></th>
-      </tr></thead><tbody>${state.positions.map(p=>{
-        const {pnl, cur} = calcPnl(p);
-        const cfg = SYMBOLS.find(s=>s.sym===p.sym);
-        return `<tr>
-          <td>${p.sym}</td>
-          <td><span class="side-badge ${p.side==='buy'?'long':'short'}">${p.side==='buy'?'LONG':'SHORT'}</span></td>
-          <td>${p.lot.toFixed(2)}</td>
-          <td>${fmtPrice(p.entry, cfg.digits)}</td>
-          <td>${fmtPrice(cur, cfg.digits)}</td>
-          <td>${p.tp?fmtPrice(p.tp,cfg.digits):'—'}</td>
-          <td>${p.sl?fmtPrice(p.sl,cfg.digits):'—'}</td>
-          <td>$${fmt(p.margin,2)}</td>
-          <td class="pnl ${pnl>=0?'up':'down'}">${pnl>=0?'+':''}$${fmt(pnl,2)}</td>
-          <td>${p.time}</td>
-          <td><button class="btn-close" onclick="closePosition(${p.id})">Đóng</button></td>
-        </tr>`;
-      }).join('')}</tbody></table>`;
-    }
-  } else if(tab === 'orders'){
-    if(!state.pendingOrders.length){
-      body.innerHTML = `<div class="empty-state"><div class="icon">⏳</div><p>Chưa có lệnh chờ nào.<br>Chọn Limit/Stop ở panel đặt lệnh để tạo lệnh chờ.</p></div>`;
-    } else {
-      body.innerHTML = `<table class="pos-table"><thead><tr><th>Symbol</th><th>Loại</th><th>Side</th><th>Lot</th><th>Giá</th><th>Thời gian</th><th></th></tr></thead><tbody>
-      ${state.pendingOrders.map(o=>`<tr><td>${o.sym}</td><td>${o.type.toUpperCase()}</td><td><span class="side-badge ${o.side==='buy'?'long':'short'}">${o.side.toUpperCase()}</span></td><td>${o.lot}</td><td>${o.price}</td><td>${o.time}</td><td><button class="btn-close" onclick="cancelOrder(${o.id})">Hủy</button></td></tr>`).join('')}
-      </tbody></table>`;
-    }
-  } else if(tab === 'history'){
-    if(!state.history.length){
-      body.innerHTML = `<div class="empty-state"><div class="icon">📜</div><p>Chưa có lịch sử giao dịch.</p></div>`;
-    } else {
-      body.innerHTML = `<table class="pos-table"><thead><tr><th>Symbol</th><th>Side</th><th>Lot</th><th>Giá vào</th><th>Giá đóng</th><th>P/L</th><th>Thời gian đóng</th></tr></thead><tbody>
-      ${state.history.map(h=>{ const cfg=SYMBOLS.find(s=>s.sym===h.sym); return `<tr><td>${h.sym}</td><td><span class="side-badge ${h.side==='buy'?'long':'short'}">${h.side.toUpperCase()}</span></td><td>${h.lot}</td><td>${fmtPrice(h.entry,cfg.digits)}</td><td>${fmtPrice(h.closePrice,cfg.digits)}</td><td class="pnl ${h.pnl>=0?'up':'down'}">${h.pnl>=0?'+':''}$${fmt(h.pnl,2)}</td><td>${h.closeTime}</td></tr>`;}).join('')}
-      </tbody></table>`;
-    }
-  } else if(tab === 'api'){
-    body.innerHTML = `<div class="api-panel">
-      <h4>🔌 Exness API — Hướng dẫn kết nối</h4>
-      <p>Exness cung cấp <b style="color:#fff">Personal API</b> cho khách hàng có tài khoản. Bạn cần tạo API Key tại Exness Personal Area. Terminal này đã tích hợp sẵn panel nhập key (nút <b style="color:#fff">Exness API</b> ở header) và file <code>server.py</code> để proxy dữ liệu giá/lệnh qua backend.</p>
-      <div class="api-grid">
-        <div class="field"><label>REST Endpoint</label><input value="https://api.exness.com/v1" readonly></div>
-        <div class="field"><label>Auth</label><input value="Bearer <API_KEY>" readonly></div>
-      </div>
-      <p style="margin-bottom:8px"><b style="color:#fff">Trạng thái hiện tại:</b> ${state.api ? `<span style="color:var(--green)">Đã lưu API Key (${state.api.account||'—'})</span>` : '<span style="color:var(--yellow)">Đang dùng feed demo công khai (Stooq/Binance)</span>'} — Giá hiển thị là giá thật từ feed công khai, khớp lệnh được mô phỏng theo spread & contract size của Exness.</p>
-      <button class="btn btn-yellow" onclick="openApiModal()">Mở panel kết nối Exness API</button>
-    </div>`;
-  } else if(tab === 'specs'){
+  if(tab === 'specs'){
     body.innerHTML = `<div style="padding:8px 12px;overflow:auto"><table class="specs-table"><thead><tr><th>Symbol</th><th>Tên</th><th>Digits</th><th>Spread (pts)</th><th>Contract</th><th>Min Lot</th><th>Max Lev</th></tr></thead><tbody>
       ${SYMBOLS.map(s=>`<tr><td>${s.sym}</td><td style="font-family:'Inter',sans-serif;color:var(--text3)">${s.name}</td><td>${s.digits}</td><td>${s.spreadPts}</td><td>${s.contract.toLocaleString()}</td><td>${s.minLot}</td><td>1:${s.maxLev}</td></tr>`).join('')}
     </tbody></table></div>`;
   }
-  updateBalanceUI();
 }
 
 // ---------- TICKER TAPE ----------
@@ -1383,12 +967,12 @@ function renderTicker(){
 function updateFeedUI(){
   const live = state.feedMode === 'live';
   $('feedSource').textContent = state.feedSource;
-  $('feedDetail').textContent = live ? 'Giá thật từ feed công khai · Cập nhật realtime' : 'Mô phỏng Exness demo · Nhập API Key để dùng giá thật';
-  $('feedStatusText').textContent = live ? 'Đang nhận giá realtime' : 'Chế độ demo — giá mô phỏng';
+  $('feedDetail').textContent = live ? 'Dữ liệu lịch sử từ nguồn công khai; tick và watchlist mô phỏng' : 'Giá và tick mô phỏng; không kết nối Exness';
+  $('feedStatusText').textContent = live ? 'Tick mô phỏng' : 'Chế độ demo — giá mô phỏng';
   $('feedDot').className = 'feed-dot' + (live ? '' : ' sim');
   $('footDot').className = 'feed-dot' + (live ? '' : ' sim');
-  $('footFeed').textContent = live ? 'Live Feed' : 'Exness Demo Feed';
-  $('feedBadgeText').textContent = live ? 'LIVE' : 'DEMO';
+  $('footFeed').textContent = live ? 'Dữ liệu lịch sử + tick mô phỏng' : 'Giá mô phỏng';
+  $('feedBadgeText').textContent = live ? 'LỊCH SỬ' : 'DEMO';
   $('feedBadge').style.background = live ? 'rgba(38,166,154,.12)' : 'rgba(240,185,11,.12)';
   $('feedBadge').style.borderColor = live ? 'rgba(38,166,154,.35)' : 'rgba(240,185,11,.35)';
   $('feedBadge').style.color = live ? '#26a69a' : '#f0b90b';
@@ -1416,7 +1000,6 @@ function startLiveTicks(){
     const prev = state.livePrice;
     state.livePrice = lastPrice;
     state._lastDir = prev != null ? (lastPrice >= prev ? 'up' : 'down') : '';
-    updateSpread();
 
     // update last candle in real-time
     if(state.candles.length){
@@ -1442,110 +1025,13 @@ function startLiveTicks(){
 
     renderWatchlist();
     renderTicker();
-    renderOrderBook();
-    // refresh positions P/L live (lightweight: only update numbers if tab open)
-    if(state.bottomTab==='positions' && state.positions.length) renderBottom();
-    else updateBalanceUI();
-    // check pending orders trigger
-    checkPendingOrders();
-    // check TP/SL
-    checkTpSl();
   }, 1500);
 }
 
-function checkPendingOrders(){
-  if(!state.pendingOrders.length) return;
-  const cfg = symCfg();
-  const price = state.livePrice;
-  if(price==null) return;
-  const triggered = state.pendingOrders.filter(o=>{
-    if(o.sym !== state.symbol) return false;
-    if(o.type==='limit') return o.side==='buy' ? price <= o.price : price >= o.price;
-    if(o.type==='stop') return o.side==='buy' ? price >= o.price : price <= o.price;
-    return false;
-  });
-  triggered.forEach(o=>{
-    state.pendingOrders = state.pendingOrders.filter(x=>x.id!==o.id);
-    const c = SYMBOLS.find(s=>s.sym===o.sym);
-    const notional = o.price * c.contract * o.lot;
-    state.positions.push({id:state.nextId++, sym:o.sym, side:o.side, lot:o.lot, entry:o.price, lev:2000, tp:null, sl:null, time:new Date().toLocaleTimeString('vi-VN'), margin:notional/2000});
-    toast('info','Lệnh chờ đã khớp',`${o.side.toUpperCase()} ${o.lot} lot ${o.sym} @ ${fmtPrice(o.price,c.digits)}`);
-  });
-  if(triggered.length) renderBottom();
-}
-function checkTpSl(){
-  if(!state.positions.length) return;
-  const toClose = [];
-  state.positions.forEach(p=>{
-    const {cur} = calcPnl(p);
-    if(p.tp && ((p.side==='buy' && cur>=p.tp) || (p.side==='short' && cur<=p.tp))) toClose.push(p.id);
-    if(p.sl && ((p.side==='buy' && cur<=p.sl) || (p.side==='short' && cur>=p.sl))) toClose.push(p.id);
-  });
-  toClose.forEach(id=>closePosition(id));
-}
-
 // ---------- API MODAL ----------
-function openApiModal(){
-  $('apiModal').classList.add('open');
-  if(state.api){
-    $('apiKey').value = state.api.key || '';
-    $('apiSecret').value = state.api.secret || '';
-    $('apiAccount').value = state.api.account || '';
-    $('apiServer').value = state.api.server || 'Exness-MT5Real';
-    updateConnStatus(true);
-  } else {
-    updateConnStatus(false);
-  }
-}
+function openApiModal(){ $('apiModal').classList.add('open'); }
 function closeApiModal(){ $('apiModal').classList.remove('open'); }
-function updateConnStatus(connected){
-  const el = $('connStatus');
-  el.classList.toggle('connected', connected);
-  $('connTitle').textContent = connected ? 'Đã kết nối Exness API' : 'Chưa kết nối';
-  $('connDesc').textContent = connected ? `Tài khoản ${state.api?.account||''} · ${state.api?.server||''} · Feed: Exness API (demo handshake)` : 'Đang dùng feed demo (Stooq/Binance + mô phỏng Exness). Nhập API Key để kết nối tài khoản thật.';
-}
-function saveApi(){
-  const key = $('apiKey').value.trim();
-  const secret = $('apiSecret').value.trim();
-  const account = $('apiAccount').value.trim();
-  const server = $('apiServer').value;
-  if(!key || !secret){ toast('error','Thiếu thông tin','Vui lòng nhập API Key và Secret.'); return; }
-  state.api = {key, secret, account, server, connectedAt: new Date().toISOString()};
-  localStorage.setItem('exness_api', JSON.stringify(state.api));
-  updateConnStatus(true);
-  toast('info','Đã kết nối Exness API',`Tài khoản ${account||'—'} · ${server}. Đang đồng bộ giá qua Exness...`);
-  closeApiModal();
-  // simulate live feed upgrade
-  state.feedMode = 'live';
-  state.feedSource = 'Exness API (Personal Key)';
-  updateFeedUI();
-}
-function disconnectApi(){
-  state.api = null;
-  localStorage.removeItem('exness_api');
-  $('apiKey').value=''; $('apiSecret').value=''; $('apiAccount').value='';
-  updateConnStatus(false);
-  state.feedMode='demo'; state.feedSource='Exness Demo (mô phỏng)';
-  updateFeedUI();
-  toast('warn','Đã ngắt kết nối','Đã xóa API Key khỏi trình duyệt. Quay lại feed demo.');
-}
-function testConnection(){
-  const btn = $('testConnBtn');
-  btn.textContent = 'Đang kiểm tra...'; btn.disabled = true;
-  setTimeout(()=>{
-    btn.textContent = 'Kiểm tra kết nối'; btn.disabled = false;
-    if($('apiKey').value.trim() && $('apiSecret').value.trim()){
-      toast('info','Kết nối thành công','Exness API handshake OK · Ping 12ms · Server Exness-MT5Real');
-    } else {
-      toast('warn','Chưa có API Key','Nhập API Key/Secret trước khi kiểm tra. Feed demo vẫn hoạt động bình thường.');
-    }
-  }, 1200);
-}
-function resetDemo(){
-  state.balance = 10000; state.positions=[]; state.pendingOrders=[]; state.history=[];
-  renderBottom(); updateBalanceUI();
-  toast('info','Reset demo','Số dư đã đặt lại $10,000. Vị thế và lịch sử đã xóa.');
-}
+function clearStoredApi(){ localStorage.removeItem('exness_api'); toast('info', 'Đã xóa', 'Đã xóa thông tin API đã lưu trong trình duyệt này.'); }
 
 // ---------- EVENTS ----------
 function bindEvents(){
@@ -1590,19 +1076,6 @@ function bindEvents(){
   });
   // Indicators
   $('indicatorBtn').addEventListener('click', e=>{ e.stopPropagation(); $('indicatorMenu').classList.toggle('open'); renderIndicatorMenu(); });
-  // Order type
-  $('orderTypeTabs').addEventListener('click', e=>{
-    const btn = e.target.closest('button'); if(!btn) return;
-    document.querySelectorAll('#orderTypeTabs button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    state.orderType = btn.dataset.ot;
-    $('orderPrice').disabled = state.orderType==='market';
-    if(state.orderType==='market') $('orderPrice').value='';
-    updatePlaceBtn();
-  });
-  // Lot slider
-  $('lotRange').addEventListener('input', e=>{ $('lotVal').textContent = parseFloat(e.target.value).toFixed(2); updateMargin(); });
-  $('leverageSel').addEventListener('change', updateMargin);
   // Bottom tabs
   $('bottomTabs').addEventListener('click', e=>{
     const btn = e.target.closest('button[data-bt]'); if(!btn) return;
@@ -1613,14 +1086,10 @@ function bindEvents(){
   });
   // Modal close on overlay click
   $('apiModal').addEventListener('click', e=>{ if(e.target===$('apiModal')) closeApiModal(); });
-  // Server time + ping
+  // Clock
   setInterval(()=>{
-    $('serverTime').textContent = new Date().toLocaleTimeString('vi-VN',{hour12:false});
-    $('pingVal').textContent = (8 + Math.floor(Math.random()*18)) + 'ms';
+    $('serverTime').textContent = new Date().toLocaleTimeString('vi-VN',{hour12:false,timeZone:'Asia/Ho_Chi_Minh'});
   }, 1000);
-  // BS buttons set side for place button
-  document.querySelector('.bs-btn.buy').addEventListener('click', ()=>{ state.orderSide='buy'; updatePlaceBtn(); });
-  document.querySelector('.bs-btn.sell').addEventListener('click', ()=>{ state.orderSide='sell'; updatePlaceBtn(); });
 }
 
 // ---------- INIT ----------
@@ -1631,12 +1100,8 @@ async function init(){
   renderWatchlist();
   renderTicker();
   renderBottom();
-  updateBalanceUI();
-  updateSpecGrid();
   await loadCandles();
   startLiveTicks();
-  // periodic refresh of recent trades
-  setInterval(renderRecentTrades, 8000);
   console.log('%cExness Terminal ready — Feed: ' + state.feedSource, 'color:#f0b90b;font-weight:bold');
 }
 
